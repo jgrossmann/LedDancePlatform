@@ -2,6 +2,7 @@ from Tkinter import *
 import alsaaudio
 import audioop
 import random
+import time
 
 def main():
     window = LEDWindow()
@@ -32,23 +33,34 @@ class ThetaChiLetter():
 
 class LEDWindow():
     def __init__(self):
-        self.ledMatrix = [[None for x in xrange(12)]for x in xrange (12)]
+        self.ledMatrix = [[None for x in xrange(9)]for x in xrange (9)]
         red = Colors("red",None)
         green = Colors("green", red)
-        orange = Colors("orange",green)
-        blue = Colors("blue",orange)
+        darkorange = Colors("dark orange",green)
+        blue = Colors("blue",darkorange)
         yellow = Colors("yellow",blue)
-        purple = Colors("purple", yellow)
-        white = Colors("white",purple)
+        darkviolet = Colors("dark violet", yellow)
+        #purple?
+        white = Colors("white",darkviolet)
+        cyan = Colors("cyan",white)
+        hotpink = Colors("hot pink",cyan)
+        darkgreen = Colors("dark green",hotpink)
         red.next = white
         
+        self.colors = []
+        color = red
+        for i in xrange(10):
+            self.colors.append(color.color)
+            color = color.next
+
         theta = ThetaChiLetter("theta", None)
         chi = ThetaChiLetter("chi", theta)
         theta.next = chi
 
         self.bassBooster = white
+        self.init = 0
+        self.updateSquares = False
         self.thetaChiLetter = theta
-        self.thetaChiLetterFreq = 1
         self.master = Tk()
         self.master.protocol("WM_DELETE_WINDOW", self.callback)
         self.w = Canvas(self.master, height=320, width=320)
@@ -61,10 +73,52 @@ class LEDWindow():
             x += 1
         self.w.pack()
         self.master.update()
+        
+        self.modes = ["thetachi","bassring"]
+        self.curMode = ("randsquares","default=True")
+        
 
-    def updateLEDs(self, matrix, mode):
-        getattr(self, mode)(matrix)
+    def updateMode(self, mode):
+        self.curMode = mode
 
+    def updateLEDs(self, matrix):
+        args = self.curMode[1].split(",")
+        try:
+            print self.curMode[0]
+            print args
+            getattr(self, self.curMode[0])(matrix,*args)
+        except:
+            print "ERROR, no function of: ",self.curMode
+            if(self.curMode[0] in self.modes):
+                self.updateMode((self.curMode[0],"default=True"))
+            else:
+                self.updateMode(("randsquares","default=True"))
+                args = self.curMode[1].split(",")
+                getattr(self, self.curMode[0])(matrix,*args)
+
+    def randsquares(self,matrix,default=True):
+        if(self.init == 0):
+            self.init = 1
+            for i in xrange(len(matrix)):
+                for j in xrange(len(matrix)):
+                    touchColors = []
+                    availColors = []
+                    if(j > 0):
+                        touchColors.append(self.w.itemcget(self.ledMatrix[i][j-1], "fill"))
+                        if(i < len(matrix)):
+                            touchColors.append(self.w.itemcget(self.ledMatrix[i+1][j-1], "fill"))
+                    if(i > 0):
+                        if(j > 0):
+                            touchColors.append(self.w.itemcget(self.ledMatrix[i-1][j-1], "fill"))
+                        touchColors.append(self.w.itemcget(self.ledMatrix[i-1][j], "fill"))
+                    for k in xrange(len(self.colors)):
+                        if(self.colors[k] not in touchColors):
+                            availColors.append(self.colors[k])
+                    color = availColors[random.randrange(0,len(availColors))]
+                    print color
+                    self.w.itemconfigure(self.ledMatrix[i][j],
+                                                fill=color)
+        self.master.update()
     
     def columns(self, matrix):
         for i in range(len(matrix)):
@@ -73,22 +127,19 @@ class LEDWindow():
                                 fill="red")
         self.master.update()
 
-    def thetachi(self, matrix):
+    def thetachi(self, matrix, default=True):
         bass = 0
         for i in range(len(matrix)):
-            if(matrix[i][1]):
+            if(matrix[i]):
                 if(i == 0):
                     bass = 1
                     continue
         if(bass):
-            if(self.thetaChiLetterFreq ==1):
-                self.thetaChiLetterFreq += 1
-            else:
-                self.turnOffLEDs()
-                getattr(self, self.thetaChiLetter.letter)(matrix)
-                self.thetaChiLetter = self.thetaChiLetter.next
-                self.thetaChiLetterFreq = 1
-                self.master.update()
+            self.turnOffLEDs("all")
+            getattr(self, self.thetaChiLetter.letter)(matrix)
+            self.thetaChiLetter = self.thetaChiLetter.next
+            self.thetaChiLetterFreq = 1
+            self.master.update()
 
     def theta(self, matrix):
         for i in xrange(1,len(matrix)-1):
@@ -96,8 +147,10 @@ class LEDWindow():
             self.w.itemconfigure(self.ledMatrix[6][i],fill="red")
             self.w.itemconfigure(self.ledMatrix[i][1],fill="red")
             self.w.itemconfigure(self.ledMatrix[i][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[2][4],fill="red")
         self.w.itemconfigure(self.ledMatrix[3][4],fill="red")
         self.w.itemconfigure(self.ledMatrix[4][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][4],fill="red")
 
     def chi(self, matrix):
         for i in xrange(1,len(matrix)-1):
@@ -107,23 +160,44 @@ class LEDWindow():
 
 
 
-    def bassring(self, matrix):
+    def bassring(self, matrix, default=True):
+        if self.init == 0 or self.updateSquares:
+            self.init = 1
+            self.updateSquares = False
+            for i in xrange(1,len(matrix)-1):
+                for j in xrange(1,len(matrix)-1):
+                    touchColors = []
+                    availColors = []
+                    if(j > 1):
+                        touchColors.append(self.w.itemcget(self.ledMatrix[i][j-1], "fill"))
+                        if(i < len(matrix)-1):
+                            touchColors.append(self.w.itemcget(self.ledMatrix[i+1][j-1], "fill"))
+                    if(i > 1):
+                        if(j > 1):
+                            touchColors.append(self.w.itemcget(self.ledMatrix[i-1][j-1], "fill"))
+                        touchColors.append(self.w.itemcget(self.ledMatrix[i-1][j], "fill"))
+                    for k in xrange(len(self.colors)):
+                        if(self.colors[k] not in touchColors):
+                            availColors.append(self.colors[k])
+                    color = availColors[random.randrange(0,len(availColors))]
+                    self.w.itemconfigure(self.ledMatrix[i][j],
+                                            fill=color)
+            self.master.update()
+            
         bass = 0
         for i in range(len(matrix)):
-            if(matrix[i][1]):
-                if(i == 0):
+            if(i == 0):
+                if(matrix[i]):
                     bass = 1
-                    continue
-                if(i == len(matrix)-1):
-                    continue
-                color = (random.randrange(0,256), 
-                        random.randrange(0,256),
-                        random.randrange(0,256))
-                for j in range(1,len(matrix)-1):
-                    self.w.itemconfigure(self.ledMatrix[i][j],
-                                    fill=self.rgbToHex(color))
+                    #self.turnOffLEDs("bassring")
+                continue
+            if(i == len(matrix)-1):
+                continue
+            
+            
         if(bass):
             for i in xrange(len(matrix)):
+                
                 self.w.itemconfigure(self.ledMatrix[i][0],
                                     fill=self.bassBooster.color)
                 self.w.itemconfigure(self.ledMatrix[i][len          (matrix)-1],fill=self.bassBooster.color)
@@ -133,11 +207,22 @@ class LEDWindow():
             self.bassBooster = self.bassBooster.next
         self.master.update()
 
-    def turnOffLEDs(self):
-        for i in range(len(self.ledMatrix)):
-            for j in range(len(self.ledMatrix)):
-                self.w.itemconfigure(self.ledMatrix[i][j],
-                                fill="white")
+    def turnOffLEDs(self, Leds):
+        if Leds == "bassring":
+            for i in xrange(len(self.ledMatrix)):
+                
+                self.w.itemconfigure(self.ledMatrix[i][0],
+                                    fill="white")
+                self.w.itemconfigure(self.ledMatrix[i][len          (self.ledMatrix)-1],fill="white")
+                self.w.itemconfigure(self.ledMatrix[0][i],
+                                    fill="white")
+                self.w.itemconfigure(self.ledMatrix[len          (self.ledMatrix)-1][i],fill="white")
+        else:
+            
+            for i in range(len(self.ledMatrix)):
+                for j in range(len(self.ledMatrix)):
+                    self.w.itemconfigure(self.ledMatrix[i][j],
+                                    fill="white")
         self.master.update()
 
     def callback(self):

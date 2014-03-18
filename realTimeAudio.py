@@ -3,14 +3,36 @@ import sys
 import numpy
 from PyQt4 import QtCore, QtGui
 import PyQt4.Qwt5 as Qwt
-from recorder import *
-
+from recorderWav import *
+import alsaaudio as aa
+import time
+from LEDUpdater import LEDWindow
+from ModeParser import ModeParser
 
 
 def plotSomething():
     if SR.newAudio==False: 
         return
     xs,ys=SR.fft()
+    arr = numpy.zeros(8)
+    bassstd = SR.bassaverages.std()
+    bassmean = SR.bassaverages.mean()
+    std = SR.averages.std()
+    mean = SR.averages.mean()
+    if(ys.mean() > mean + std):
+        platform.updateSquares = True
+    SR.averages[SR.avgIndex] = ys.mean()
+    SR.avgIndex += 1
+    if(SR.avgIndex >= len(SR.averages)):
+        SR.avgIndex = 0
+    if(bassstd + bassmean < numpy.amax(ys[:len(ys)/8])):
+        arr[0] = 1
+    SR.bassaverages[SR.bassavgIndex] = numpy.amax(ys[:len(ys)/8])
+    SR.bassavgIndex += 1
+    if(SR.bassavgIndex >= len(SR.bassaverages)):
+        SR.bassavgIndex = 0    
+    print arr
+    platform.updateLEDs(arr)
     c.setData(xs,ys)
     uiplot.qwtPlot.replot()
     SR.newAudio=False
@@ -35,6 +57,10 @@ if __name__ == "__main__":
     
     win_plot.connect(uiplot.timer, QtCore.SIGNAL('timeout()'), plotSomething) 
     
+    platform = LEDWindow()  
+    parser = ModeParser(sys.argv, platform.modes)
+    platform.updateMode(parser.modes.items()[0])
+
     SR=SwhRecorder()
     SR.setup()
     SR.continuousStart()

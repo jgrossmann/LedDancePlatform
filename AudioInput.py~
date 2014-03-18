@@ -23,11 +23,12 @@ import alsaaudio as aa
 import smbus
 import pyaudio as pa
 import aubio
+from SpectralPlot import SpectralPlot
 
 def main():
     #Creates the 8x8 LED window
     window = LEDWindow()
-
+    
     matrix = [0,0,0,0,0,0,0,0]
     dataPoints = len(matrix)
     power = []
@@ -39,7 +40,8 @@ def main():
         
     
     # Set up audio
-    wavfile = wave.open('/home/pi/LedDancePlatform/pony.wav','r')
+    wavfile = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
+    #wavfile = wave.open('/home/pi/LedDancePlatform/pony.wav','r')
     sample_rate = wavfile.getframerate()
     print sample_rate
     no_channels = wavfile.getnchannels()
@@ -50,6 +52,10 @@ def main():
     output.setformat(aa.PCM_FORMAT_S16_LE)
     output.setperiodsize(chunk)
 
+    #graphs audio spectrum
+    #comment this out along with update code in calculate_levels
+    spectrum = SpectralPlot(chunk, sample_rate)
+    
 
     # Return power array index corresponding to a particular frequency
     def piff(val):
@@ -69,24 +75,36 @@ def main():
     """
     def calculate_levels(data, chunk,sample_rate,peaks,
                         peaksIndex, dataPoints, avgLen, averages,
-                        ):
+                        spectrum):
        #global matrix
        # Convert raw data (ASCII string) to numpy array
-       data = unpack("%dh"%(len(data)/2),data)
-       data = np.array(data, dtype='h')
+       data = data.astype(np.int)
+       #data = unpack("%dh"%(len(data)/2),data)
+       energy = numpy.dot(data,data)/float(0xffffffff)
+       
+       
+       data = np.array(data, dtype='h') * np.hanning(chunk*2)
        #data = np.hamming(2*chunk)
        # Apply FFT - real data
        fourier=np.fft.rfft(data)
        # Remove last element in array to make it the same size as chunk
        fourier=np.delete(fourier,len(fourier)-1)
        # Find average 'amplitude' for specific frequency ranges in Hz
-       power = 10*np.log10(np.abs(fourier)+1e-20)
+       #power = 10*np.log10(np.abs(fourier)+1e-20)
+       power = np.abs(fourier)+1e-20
+       power = power/100000
+       power = power[:len(power)/2]
+       #updates spectral graph
+       spectrum.update(power)
         
        fRange = (chunk/(dataPoints))
+       
        for i in xrange(dataPoints):
-          maxval = np.amax(power[(i*fRange):
-                                 (fRange*(i+1))],-1)
+          maxval = np.amax(power[(i*fRange/2):
+                                 (fRange*(i+1)/2)],-1)
           peaks[i][peaksIndex] = maxval
+          if(i == 0):
+            print maxval
           if(maxval > averages[i][0] + 5):
             averages[i][1] = 1
           else:
@@ -125,14 +143,14 @@ def main():
     # Process audio file   
     print "Processing....."
     data = wavfile.readframes(chunk)
-    print len(data)
+    print data
     while data!='':
         output.write(data)   
-        averages=calculate_levels(data, chunk,sample_rate, peaks, peaksIndex,dataPoints, avgLen, averages)
+        averages=calculate_levels(data, chunk,sample_rate, peaks, peaksIndex,dataPoints, avgLen, averages, spectrum)
         peaksIndex = (peaksIndex+1)%avgLen
         #window.turnOffLEDs()
         window.updateLEDs(averages, "thetachi")   
-        data = wavfile.readframes(chunk) * np.hanning(chunk)
+        data = wavfile.readframes(chunk)
 
 
     

@@ -1,0 +1,22 @@
+import matplotlib
+
+class SpectralPlot(object):
+    def __init__(self, sampSize, freq):
+        self.sampSize = sampSize
+        self.freq = freq/2
+        self.bin = self.freq/sampSize
+        self.xarray = []
+        for i in xrange(sampSize):
+            self.xarray.append(i*self.bin) 
+        self.window = plt.plot()
+        self.window.xlabel("Frequency")
+        self.window.ylabel("dB")
+        self.window.show()
+                
+    def plot(self, data):
+        self.window.plot(self.xarray, data)
+        self.window.show()
+
+
+if __name__ == "__main__":
+    main()

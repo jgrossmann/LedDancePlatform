@@ -18,6 +18,7 @@ class SwhRecorder:
         self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
         #self.RATE=48100
         self.RATE = self.file.getframerate()
+        print self.RATE
         self.nChannels = self.file.getnchannels()
         self.BUFFERSIZE=2**13 #2048 is a good buffer size
         self.secToRecord=.1

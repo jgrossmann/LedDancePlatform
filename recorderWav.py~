@@ -30,7 +30,7 @@ class SwhRecorder:
         output.setperiodsize(self.BUFFERSIZE)
         self.output = output
         self.bassaverages = numpy.zeros(16)
-        self.averages = numpy.zeros(64)
+        self.averages = numpy.zeros(32)
         self.bassavgIndex = 0
         self.avgIndex = 0
         

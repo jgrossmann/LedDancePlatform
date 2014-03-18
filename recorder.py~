@@ -14,21 +14,11 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.RATE=44100
-        self.BUFFERSIZE=2**13 #2048 is a good buffer size
+        self.RATE=48100
+        self.BUFFERSIZE=2**12 #1024 is a good buffer size
         self.secToRecord=.1
         self.threadsDieNow=False
         self.newAudio=False
-        output = aa.PCM(aa.PCM_PLAYBACK, aa.PCM_NORMAL)
-        output.setchannels(1)
-        output.setrate(self.RATE)
-        output.setformat(aa.PCM_FORMAT_S16_LE)
-        output.setperiodsize(self.BUFFERSIZE)
-        self.output = output
-        self.bassaverages = numpy.zeros(16)
-        self.averages = numpy.zeros(32)
-        self.bassavgIndex = 0
-        self.avgIndex = 0
         
     def setup(self):
         """initialize sound card."""
@@ -57,7 +47,6 @@ class SwhRecorder:
     def getAudio(self):
         """get a single buffer size worth of audio."""
         audioString=self.inStream.read(self.BUFFERSIZE)
-        self.output.write(audioString)
         return numpy.fromstring(audioString,dtype=numpy.int16)
         
     def record(self,forever=True):

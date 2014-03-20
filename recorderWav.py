@@ -15,7 +15,7 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
+        self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
         self.RATE=44100
         #self.RATE = self.file.getframerate()
         print self.RATE
@@ -39,6 +39,8 @@ class SwhRecorder:
         self.powerIndex = 0
         self.intensity = 0
         self.intensityAvg = numpy.zeros(16)
+        self.longIntensityAvg = numpy.zeros(32)
+        self.longIntensityAvgIndex=0
         self.intensityIndex = 0
         
     def setup(self):
@@ -124,10 +126,10 @@ class SwhRecorder:
         xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
-        #print "bassavg",self.bassaverages.mean()
-        #print "bassstd",self.bassaverages.std()
-        #print "bassmax",numpy.amax(ys[:len(ys)/17])
-        #print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
+        print "bassavg",self.bassaverages.mean()
+        print "bassstd",self.bassaverages.std()
+        print "bassmax",numpy.amax(ys[:len(ys)/17])
+        print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
         #print "avg", self.averages.mean()
         #print "std", self.averages.std()
         #print "currAvg",ys.mean()

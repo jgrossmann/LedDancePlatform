@@ -33,28 +33,51 @@ def plotSomething():
     if(SR.avgIndex >= len(SR.averages)):
         SR.avgIndex = 0
 
-    if(bassstd + (bassmean*1.15)  + mean< numpy.amax(ys[:len(ys)/17])):
-        if(bassstd > 1):
-            arr[0] = 1
+    if(bassstd + (bassmean*1.1)  + mean< numpy.amax(ys[:len(ys)/17])):
+        if(bassstd > .5):
+            platform.bass = True
 
     if(SR.bassavgIndex >= len(SR.bassaverages)):
         SR.bassavgIndex = 0 
     arr = []
-    arr.append(int(math.log10((ys[:len(ys)/22.67]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/22.67:len(ys)/9.7]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/9.7:len(ys)/5.2]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/5.2:len(ys)/3.4]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/3.4:len(ys)/2.43]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/2.43:len(ys)/1.79]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/1.79:len(ys)/1.31]**2).sum()/10)))
-    arr.append(int(math.log10((ys[len(ys)/1.31:]**2).sum()/10)))
-    print math.log10(((ys**2)/8).sum())
-    SR.intensityAvg[SR.intensityIndex] = int(math.log10((ys**2).sum()))
+    #arr.append(int(math.log10((ys[:len(ys)/22.67]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[:len(ys)/22.67]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/22.67:len(ys)/9.7]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/22.67:len(ys)/9.7]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/9.7:len(ys)/5.2]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/9.7:len(ys)/5.2]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/5.2:len(ys)/3.4]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/5.2:len(ys)/3.4]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/3.4:len(ys)/2.43]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/3.4:len(ys)/2.43]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/2.43:len(ys)/1.79]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/2.43:len(ys)/1.79]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/1.79:len(ys)/1.31]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/1.79:len(ys)/1.31]**2)+1)))
+    #arr.append(int(math.log10((ys[len(ys)/1.31:]**2).sum()/10)))
+    arr.append(int(math.log10(numpy.amax(ys[len(ys)/1.31:]**2)+1)))
+    for i in xrange(len(arr)):
+        if(arr[i] > 8):
+            arr[i] = 8
+    SR.intensityAvg[SR.intensityIndex] = int(math.log10((ys**2).sum()+1))
+    SR.longIntensityAvg[SR.longIntensityAvgIndex] = math.log10((ys**2).sum()+1)
+    if(SR.longIntensityAvg[SR.longIntensityAvgIndex] > max(SR.longIntensityAvg)):
+        platform.visualizeFreq = 0
+    elif(SR.longIntensityAvg[SR.longIntensityAvgIndex] < min(SR.longIntensityAvg)):
+        platform.visualizeFreq = 10
+    else:
+        platform.visualizeFreq = int((10 - (SR.longIntensityAvg[SR.longIntensityAvgIndex] - min(SR.longIntensityAvg)) / (max(SR.longIntensityAvg) - min(SR.longIntensityAvg))) * 10)
+    print min(SR.longIntensityAvg)
+    print platform.visualizeWait
+    print platform.visualizeFreq
+    print "power avg:", sum(arr)/len(arr)
+    print SR.intensityAvg[SR.intensityIndex]
     SR.intensityIndex += 1
+    SR.longIntensityAvgIndex+=1
     if(SR.intensityIndex >= len(SR.intensityAvg)):
         SR.intensityIndex = 0
-    print SR.intensityAvg.mean()
-    print SR.intensityAvg.std()
+    if(SR.longIntensityAvgIndex >= len(SR.longIntensityAvg)):
+        SR.longIntensityAvgIndex = 0
     if(platform.curMode[0] == "randsquares"):
         if(int(math.log10((ys**2).sum())) > SR.intensityAvg.mean() + SR.intensityAvg.std()):
             platform.updateSquares = True

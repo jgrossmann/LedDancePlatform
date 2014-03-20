@@ -20,13 +20,11 @@ class ModeParser(object):
         if(modeIndex != -1):
             tempArgsList = tempArgsList[modeIndex:]
             modeIndex = argsList.find("--",2,len(tempArgsList))
-            print tempArgsList
             if(modeIndex != -1):
                 mode = tempArgsList[2:modeIndex+2].split(",")
                 if(len(mode) == 1):
                     mode = tempArgsList[2:modeIndex+2].split(" ")
             else:
-                print mode
                 mode = tempArgsList[2:].split(",")
                 if(len(mode) == 1):
                     mode = tempArgsList[2:].split(" ")
@@ -34,13 +32,11 @@ class ModeParser(object):
                 if(mode[0] in self.availModes):
                     self.modes[mode[0]] = "default=True"
             else:
-                print mode
                 if(mode[0] in self.availModes):
                     self.modes[mode[0]] = ",".join(mode[1:])
 
         if(len(self.modes.items()) == 0):
             self.modes['randsquares'] = "default=True"
-        print self.modes
                 
         
 if __name__ == "__main__":

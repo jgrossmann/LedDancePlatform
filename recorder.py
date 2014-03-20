@@ -36,6 +36,8 @@ class SwhRecorder:
         self.powerIndex = 0
         self.intensity = 0
         self.intensityAvg = numpy.zeros(16)
+        self.longIntensityAvg = numpy.zeros(32)
+        self.longIntensityAvgIndex=0
         self.intensityIndex = 0
 
         

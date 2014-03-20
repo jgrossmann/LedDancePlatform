@@ -83,9 +83,9 @@ class SwhRecorder:
         while True:
             if self.threadsDieNow: break
             for i in range(self.chunksToRecord):
-                self.audio[0:self.nChannels*self.BUFFERSIZE]=self.getAudio()
+                self.audio[i*self.nChannels*self.BUFFERSIZE:(i+1)*self.nChannels*self.BUFFERSIZE]=self.getAudio()
             self.newAudio=True 
-            self.audio *= numpy.bartlett(len(self.audio))
+            self.audio *= numpy.hanning(len(self.audio))
             self.output.write(self.audioString)
             self.audioString = ""
             if forever==False: break

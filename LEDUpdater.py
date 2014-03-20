@@ -84,8 +84,6 @@ class LEDWindow():
     def updateLEDs(self, matrix):
         args = self.curMode[1].split(",")
         try:
-            print self.curMode[0]
-            print args
             getattr(self, self.curMode[0])(matrix,*args)
         except:
             print "ERROR, no function of: ",self.curMode
@@ -115,7 +113,6 @@ class LEDWindow():
                         if(self.colors[k] not in touchColors):
                             availColors.append(self.colors[k])
                     color = availColors[random.randrange(0,len(availColors))]
-                    print color
                     self.w.itemconfigure(self.ledMatrix[i][j],
                                                 fill=color)
         self.master.update()

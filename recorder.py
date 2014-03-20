@@ -7,6 +7,7 @@ import pyaudio
 import threading
 import pylab
 import struct
+import alsaaudio as aa
 
 
 class SwhRecorder:
@@ -14,8 +15,8 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.RATE=44100
-        self.BUFFERSIZE=2**13 #2048 is a good buffer size
+        self.RATE=48100
+        self.BUFFERSIZE=2**10#1024 is a good buffer size
         self.secToRecord=.1
         self.threadsDieNow=False
         self.newAudio=False
@@ -29,6 +30,7 @@ class SwhRecorder:
         self.averages = numpy.zeros(32)
         self.bassavgIndex = 0
         self.avgIndex = 0
+        self.dropFrames = 0
         
     def setup(self):
         """initialize sound card."""
@@ -46,7 +48,7 @@ class SwhRecorder:
         
         self.xsBuffer=numpy.arange(self.BUFFERSIZE)*self.secPerPoint
         self.xs=numpy.arange(self.chunksToRecord*self.BUFFERSIZE)*self.secPerPoint
-        self.audio=numpy.empty((self.chunksToRecord*self.BUFFERSIZE),dtype=numpy.int16)               
+        self.audio=numpy.empty((self.chunksToRecord*self.BUFFERSIZE),dtype=numpy.int16) 
     
     def close(self):
         """cleanly back out and release sound card."""
@@ -64,9 +66,19 @@ class SwhRecorder:
         """record secToRecord seconds of audio."""
         while True:
             if self.threadsDieNow: break
-            for i in range(self.chunksToRecord):
-                self.audio[i*self.BUFFERSIZE:(i+1)*self.BUFFERSIZE]=self.getAudio()
-            self.newAudio=True 
+            try:
+                for i in range(self.chunksToRecord):
+                    self.audio[i*self.BUFFERSIZE:(i+1)*self.BUFFERSIZE]=self.getAudio()
+                #self.audio *= numpy.hanning(len(self.audio))
+            except IOError:
+                print "dropped frames"
+                self.newAudio = False
+                self.dropFrames += 1
+                if(self.dropFrames >= 5):
+                    break
+            else:
+                self.dropFrames = 0
+                self.newAudio=True 
             if forever==False: break
     
     def continuousStart(self):
@@ -88,7 +100,7 @@ class SwhRecorder:
         data=numpy.average(data,1)
         return data    
         
-    def fft(self,data=None,trimBy=10,logScale=False,divBy=100):
+    def fft(self,data=None,trimBy=10,logScale=False,divBy=200000):
         if data==None: 
             data=self.audio.flatten()
         left,right=numpy.split(numpy.abs(numpy.fft.fft(data)),2)

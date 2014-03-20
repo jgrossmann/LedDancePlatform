@@ -84,8 +84,6 @@ class LEDWindow():
     def updateLEDs(self, matrix):
         args = self.curMode[1].split(",")
         try:
-            print self.curMode[0]
-            print args
             getattr(self, self.curMode[0])(matrix,*args)
         except:
             print "ERROR, no function of: ",self.curMode
@@ -135,11 +133,8 @@ class LEDWindow():
                     bass = 1
                     continue
         if(bass):
-            print "before turnff Leds"
-            self.turnOffLEDs()
-            print"here"
+            self.turnOffLEDs("all")
             getattr(self, self.thetaChiLetter.letter)(matrix)
-            print "after"
             self.thetaChiLetter = self.thetaChiLetter.next
             self.thetaChiLetterFreq = 1
             self.master.update()

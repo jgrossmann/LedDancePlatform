@@ -3,7 +3,7 @@ import sys
 import numpy
 from PyQt4 import QtCore, QtGui
 import PyQt4.Qwt5 as Qwt
-from recorderWav import *
+from recorder import *
 import alsaaudio as aa
 import time
 from LEDUpdater import LEDWindow
@@ -31,7 +31,7 @@ def plotSomething():
     SR.bassavgIndex += 1
     if(SR.bassavgIndex >= len(SR.bassaverages)):
         SR.bassavgIndex = 0    
-    
+    print arr
     platform.updateLEDs(arr)
     c.setData(xs,ys)
     uiplot.qwtPlot.replot()

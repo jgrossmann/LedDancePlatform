@@ -76,14 +76,6 @@ class SwhRecorder:
         self.audioString+=audioString
         temp = numpy.fromstring(audioString,dtype=numpy.int16)
         #temp *= numpy.hanning(len(temp))
-        """
-        if(self.nChannels > 1):
-            monoAudio = numpy.int16([])
-            for i in xrange(len(temp)):
-                if(i % 2 == 0):
-                    monoAudio = numpy.append(monoAudio,temp[i])
-            return monoAudio
-        """
         return temp
         
     def record(self,forever=True):

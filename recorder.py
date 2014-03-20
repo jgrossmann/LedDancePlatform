@@ -25,12 +25,19 @@ class SwhRecorder:
         output.setrate(self.RATE)
         output.setformat(aa.PCM_FORMAT_S16_LE)
         output.setperiodsize(self.BUFFERSIZE)
+        self.audioString = ""
         self.output = output
         self.bassaverages = numpy.zeros(16)
         self.averages = numpy.zeros(32)
         self.bassavgIndex = 0
         self.avgIndex = 0
         self.dropFrames = 0
+        self.power = numpy.zeros(16)
+        self.powerIndex = 0
+        self.intensity = 0
+        self.intensityAvg = numpy.zeros(16)
+        self.intensityIndex = 0
+
         
     def setup(self):
         """initialize sound card."""
@@ -81,6 +88,7 @@ class SwhRecorder:
             else:
                 self.dropFrames = 0
                 self.newAudio=True 
+                self.audio *= numpy.bartlett(len(self.audio))
             if forever==False: break
     
     def continuousStart(self):
@@ -114,7 +122,7 @@ class SwhRecorder:
             i=int((self.BUFFERSIZE/2)/trimBy)
             ys=ys[:i]
             xs=xs[:i]
-        xs*=self.RATE/self.BUFFERSIZE/(4096/self.BUFFERSIZE)
+        xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
 

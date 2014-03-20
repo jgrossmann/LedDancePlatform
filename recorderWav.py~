@@ -132,16 +132,16 @@ class SwhRecorder:
         xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
-        print "bassavg",self.bassaverages.mean()
-        print "bassstd",self.bassaverages.std()
-        print "bassmax",numpy.amax(ys[:len(ys)/17])
-        print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
-        print "avg", self.averages.mean()
-        print "std", self.averages.std()
-        print "currAvg",ys.mean()
-        print "avg + std", self.averages.mean() + self.averages.std()
-        print "power avg", self.power.mean()
-        print "power", (ys**2).sum()
+        #print "bassavg",self.bassaverages.mean()
+        #print "bassstd",self.bassaverages.std()
+        #print "bassmax",numpy.amax(ys[:len(ys)/17])
+        #print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
+        #print "avg", self.averages.mean()
+        #print "std", self.averages.std()
+        #print "currAvg",ys.mean()
+        #print "avg + std", self.averages.mean() + self.averages.std()
+        #print "power avg", self.power.mean()
+        #print "power", (ys**2).sum()
         return xs,ys
     
     ### VISUALIZATION ###

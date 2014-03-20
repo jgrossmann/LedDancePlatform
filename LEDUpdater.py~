@@ -35,17 +35,17 @@ class LEDWindow():
     def __init__(self):
         self.ledMatrix = [[None for x in xrange(9)]for x in xrange (9)]
         red = Colors("red",None)
-        green = Colors("green", red)
+        white = Colors("white",red)
+        green = Colors("green", white)
         darkorange = Colors("dark orange",green)
         blue = Colors("blue",darkorange)
         yellow = Colors("yellow",blue)
         darkviolet = Colors("dark violet", yellow)
         #purple?
-        white = Colors("white",darkviolet)
-        cyan = Colors("cyan",white)
+        cyan = Colors("cyan",darkviolet)
         hotpink = Colors("hot pink",cyan)
         darkgreen = Colors("dark green",hotpink)
-        red.next = white
+        red.next = darkgreen
         
         self.colors = []
         color = red
@@ -74,7 +74,8 @@ class LEDWindow():
         self.w.pack()
         self.master.update()
         
-        self.modes = ["thetachi","bassring"]
+##---------IMPORTANT, MUST UPDATE SELF.MODES WITH ADDITIONAL FUNCTIONS IF YOU WANT THE MODES TO BE USABLE!!!!!!-------#####
+        self.modes = ["thetachi","bassring","levels","randsquares"]
         self.curMode = ("randsquares","default=True")
         
 
@@ -82,11 +83,17 @@ class LEDWindow():
         self.curMode = mode
 
     def updateLEDs(self, matrix):
-        args = self.curMode[1].split(",")
+        args = self.curMode[1]
         try:
-            getattr(self, self.curMode[0])(matrix,*args)
+            print self.curMode
+            print args
+            print("self."+self.curMode[0]+"("+str(matrix)+","+args+")")
+            print "why didnt it print"
+            eval("self."+self.curMode[0]+"("+str(matrix)+","+args+")")
+            #getattr(self, self.curMode[0])(matrix,*)
         except:
-            print "ERROR, no function of: ",self.curMode
+            print "ERROR, in function of: ",self.curMode
+            print sys.exc_info()[0]
             if(self.curMode[0] in self.modes):
                 self.updateMode((self.curMode[0],"default=True"))
             else:
@@ -94,7 +101,14 @@ class LEDWindow():
                 args = self.curMode[1].split(",")
                 getattr(self, self.curMode[0])(matrix,*args)
 
-    def randsquares(self,matrix,default=True):
+    def randsquares(self,matrix,default=True,change=False):
+        print "in function"
+        print change
+        if(change):
+            if(self.updateSquares):
+                self.updateSquares = False
+                self.init = 0
+
         if(self.init == 0):
             self.init = 1
             for i in xrange(len(matrix)):
@@ -113,7 +127,6 @@ class LEDWindow():
                         if(self.colors[k] not in touchColors):
                             availColors.append(self.colors[k])
                     color = availColors[random.randrange(0,len(availColors))]
-                    print color
                     self.w.itemconfigure(self.ledMatrix[i][j],
                                                 fill=color)
         self.master.update()
@@ -136,7 +149,6 @@ class LEDWindow():
             self.turnOffLEDs("all")
             getattr(self, self.thetaChiLetter.letter)(matrix)
             self.thetaChiLetter = self.thetaChiLetter.next
-            self.thetaChiLetterFreq = 1
             self.master.update()
 
     def theta(self, matrix):
@@ -155,7 +167,15 @@ class LEDWindow():
             self.w.itemconfigure(self.ledMatrix[i][i],fill="red")
             self.w.itemconfigure(self.ledMatrix[i][len(matrix)-i-1],fill="red")
 
-
+    def levels(self, matrix, default=True):
+        self.turnOffLEDs("all")
+        for i in xrange(len(matrix)):
+            color = self.colors[i]
+            print color
+            for j in xrange(int(matrix[i])):
+                
+                self.w.itemconfigure(self.ledMatrix[i][j], fill=color)
+        self.master.update()
 
 
     def bassring(self, matrix, default=True):

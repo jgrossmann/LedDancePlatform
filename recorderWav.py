@@ -15,12 +15,12 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
-        #self.RATE=48100
-        self.RATE = self.file.getframerate()
+        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
+        self.RATE=44100
+        #self.RATE = self.file.getframerate()
         print self.RATE
         self.nChannels = self.file.getnchannels()
-        self.BUFFERSIZE=2**13 #2048 is a good buffer size
+        self.BUFFERSIZE=2**10 #2048 is a good buffer size
         self.secToRecord=.1
         self.threadsDieNow=False
         self.newAudio=False
@@ -29,24 +29,30 @@ class SwhRecorder:
         output.setrate(self.RATE)
         output.setformat(aa.PCM_FORMAT_S16_LE)
         output.setperiodsize(self.BUFFERSIZE)
+        self.audioString = ""
         self.output = output
         self.bassaverages = numpy.zeros(16)
         self.averages = numpy.zeros(32)
         self.bassavgIndex = 0
         self.avgIndex = 0
+        self.power = numpy.zeros(16)
+        self.powerIndex = 0
+        self.intensity = 0
+        self.intensityAvg = numpy.zeros(16)
+        self.intensityIndex = 0
         
     def setup(self):
         """initialize sound card."""
         #TODO - windows detection vs. alsa or something for linux
         #TODO - try/except for sound card selection/initiation
 
-       # self.buffersToRecord=int(self.RATE*self.secToRecord/self.BUFFERSIZE)
-        self.buffersToRecord = 1
+        self.buffersToRecord=int(self.RATE*self.secToRecord/self.BUFFERSIZE)
+        #self.buffersToRecord = 1
         if self.buffersToRecord==0: self.buffersToRecord=1
-        #self.samplesToRecord=int(self.BUFFERSIZE*self.buffersToRecord)
-        self.samplesToRecord = 2048
-        #self.chunksToRecord=int(self.samplesToRecord/self.BUFFERSIZE)
-        self.chunksToRecord = self.buffersToRecord
+        self.samplesToRecord=int(self.BUFFERSIZE*self.buffersToRecord)
+        #self.samplesToRecord = 2048
+        self.chunksToRecord=int(self.samplesToRecord/self.BUFFERSIZE)
+        #self.chunksToRecord = self.buffersToRecord
         self.secPerPoint=1.0/self.RATE
         
         self.p = pyaudio.PyAudio()
@@ -66,9 +72,10 @@ class SwhRecorder:
     def getAudio(self):
         """get a single buffer size worth of audio."""
         audioString=self.inStream.readframes(self.BUFFERSIZE)
-        self.output.write(audioString)
+        #self.output.write(audioString)
+        self.audioString+=audioString
         temp = numpy.fromstring(audioString,dtype=numpy.int16)
-        temp *= numpy.hanning(len(temp))
+        #temp *= numpy.hanning(len(temp))
         """
         if(self.nChannels > 1):
             monoAudio = numpy.int16([])
@@ -86,6 +93,9 @@ class SwhRecorder:
             for i in range(self.chunksToRecord):
                 self.audio[0:self.nChannels*self.BUFFERSIZE]=self.getAudio()
             self.newAudio=True 
+            self.audio *= numpy.bartlett(len(self.audio))
+            self.output.write(self.audioString)
+            self.audioString = ""
             if forever==False: break
     
     def continuousStart(self):
@@ -107,7 +117,7 @@ class SwhRecorder:
         data=numpy.average(data,1)
         return data    
         
-    def fft(self,data=None,trimBy=20,logScale=False,divBy=200000):
+    def fft(self,data=None,trimBy=1.5,logScale=False,divBy=2000):
         if data==None: 
             data=self.audio.flatten()
         left,right=numpy.split(numpy.abs(numpy.fft.fft(data)),2)
@@ -116,19 +126,22 @@ class SwhRecorder:
             ys=numpy.multiply(20,numpy.log10(ys))
         xs=numpy.arange(self.BUFFERSIZE/2,dtype=float)
         if trimBy:
-            i=int((self.BUFFERSIZE/2/trimBy))
+            i=int((self.BUFFERSIZE/2)/trimBy)
             ys=ys[:i]
-            xs=xs[:i]*self.RATE/self.BUFFERSIZE*20
+            xs=xs[:i]
+        xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
-        print "bassavg",self.bassaverages.mean()
-        print "bassstd",self.bassaverages.std()
-        print "bassmax",numpy.amax(ys[:len(ys)/8])
-        print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
-        print "avg", self.averages.mean()
-        print "std", self.averages.std()
-        print "currAvg",ys.mean()
-        print "avg + std", self.averages.mean() + self.averages.std()
+        #print "bassavg",self.bassaverages.mean()
+        #print "bassstd",self.bassaverages.std()
+        #print "bassmax",numpy.amax(ys[:len(ys)/17])
+        #print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
+        #print "avg", self.averages.mean()
+        #print "std", self.averages.std()
+        #print "currAvg",ys.mean()
+        #print "avg + std", self.averages.mean() + self.averages.std()
+        #print "power avg", self.power.mean()
+        #print "power", (ys**2).sum()
         return xs,ys
     
     ### VISUALIZATION ###

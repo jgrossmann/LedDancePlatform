@@ -60,7 +60,9 @@ class SwhRecorder:
         """get a single buffer size worth of audio."""
         audioString=self.inStream.read(self.BUFFERSIZE)
         self.output.write(audioString)
-        return numpy.fromstring(audioString,dtype=numpy.int16)
+        temp = numpy.fromstring(audioString,dtype=numpy.int16)
+        #temp *= numpy.hanning(len(temp))
+        return temp
         
     def record(self,forever=True):
         """record secToRecord seconds of audio."""
@@ -100,7 +102,7 @@ class SwhRecorder:
         data=numpy.average(data,1)
         return data    
         
-    def fft(self,data=None,trimBy=10,logScale=False,divBy=200000):
+    def fft(self,data=None,trimBy=1.5,logScale=False,divBy=2000):
         if data==None: 
             data=self.audio.flatten()
         left,right=numpy.split(numpy.abs(numpy.fft.fft(data)),2)
@@ -111,11 +113,15 @@ class SwhRecorder:
         if trimBy:
             i=int((self.BUFFERSIZE/2)/trimBy)
             ys=ys[:i]
-            xs=xs[:i]*self.RATE/self.BUFFERSIZE
+            xs=xs[:i]
+        xs*=self.RATE/self.BUFFERSIZE/(4096/self.BUFFERSIZE)
         if divBy:
             ys=ys/float(divBy)
-        return xs,ys
-    
+
+        print "avg", self.averages.mean()
+        print "std", self.averages.std()
+        print "cur avg", ys.mean()
+        return xs,ys    
     ### VISUALIZATION ###
     
     def plotAudio(self):

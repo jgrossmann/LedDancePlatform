@@ -16,19 +16,22 @@ def plotSomething():
     xs,ys=SR.fft()
     arr = numpy.zeros(8)
     bassstd = SR.bassaverages.std()
+    SR.bassaverages[SR.bassavgIndex] = numpy.amax(ys[:len(ys)/18])
+    SR.bassavgIndex += 1
     bassmean = SR.bassaverages.mean()
     std = SR.averages.std()
     mean = SR.averages.mean()
-    if(ys.mean() > mean + std):
+    if(ys[len(ys)/18:].mean() > mean + std):
         platform.updateSquares = True
-    SR.averages[SR.avgIndex] = ys.mean()
+    SR.averages[SR.avgIndex] = ys[len(ys)/18:].mean()
     SR.avgIndex += 1
     if(SR.avgIndex >= len(SR.averages)):
         SR.avgIndex = 0
-    if(bassstd + bassmean < numpy.amax(ys[:len(ys)/8])):
-        arr[0] = 1
-    SR.bassaverages[SR.bassavgIndex] = numpy.amax(ys[:len(ys)/8])
-    SR.bassavgIndex += 1
+
+    if(bassstd + bassmean  + mean< numpy.amax(ys[:len(ys)/18])):
+        if(bassstd > 1):
+            arr[0] = 1
+
     if(SR.bassavgIndex >= len(SR.bassaverages)):
         SR.bassavgIndex = 0    
     platform.updateLEDs(arr)
@@ -49,7 +52,7 @@ if __name__ == "__main__":
     c=Qwt.QwtPlotCurve()  
     c.attach(uiplot.qwtPlot)
     
-    uiplot.qwtPlot.setAxisScale(uiplot.qwtPlot.yLeft, 0, 1000)
+    uiplot.qwtPlot.setAxisScale(uiplot.qwtPlot.yLeft, 0,20000)
     
     uiplot.timer = QtCore.QTimer()
     uiplot.timer.start(1.0)

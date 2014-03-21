@@ -86,6 +86,7 @@ class LEDWindow():
         chi = ThetaChiLetter("chi", theta)
         theta.next = chi
 
+        self.newMode = True
         self.bassBooster = red
         self.init = 0
         self.mainColors = red
@@ -96,7 +97,7 @@ class LEDWindow():
         self.thetaChiLetter = theta
         self.visualizeWaves = [None for x in xrange(4)]
         self.master = Tk()
-        self.master.wm_title("LED Dance Platform"
+        self.master.wm_title("LED Dance Platform")
         self.master.protocol("WM_DELETE_WINDOW", self.callback)
         self.killed = False
         self.w = Canvas(self.master, height=320, width=320)
@@ -119,6 +120,7 @@ class LEDWindow():
 
     def updateMode(self, mode):
         self.curMode = mode
+        self.newMode = True
 
     def updateLEDs(self, matrix):
         args = self.curMode[1]
@@ -273,6 +275,16 @@ class LEDWindow():
             self.bassBooster = self.bassBooster.next
         self.master.update()
 
+
+    def solidColor(self,matrix,default=True,color="red"):
+        if(self.newMode):
+            self.newMode = False
+            for i in xrange(len(self.ledMatrix)):
+                for j in xrange(len(self.ledMatrix)):
+                    self.w.itemconfigure(self.ledmatrix[i][j],
+                                        fill=color)
+            self.master.update()
+
     def turnOffLEDs(self, Leds):
         if Leds == "bassring":
             for i in xrange(len(self.ledMatrix)):
@@ -290,6 +302,7 @@ class LEDWindow():
                     self.w.itemconfigure(self.ledMatrix[i][j],
                                     fill="white")
         self.master.update()
+
 
     def callback(self):
         self.killed = True

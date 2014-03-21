@@ -86,6 +86,7 @@ class LEDWindow():
         chi = ThetaChiLetter("chi", theta)
         theta.next = chi
 
+        self.newMode = True
         self.bassBooster = red
         self.init = 0
         self.mainColors = red
@@ -111,7 +112,7 @@ class LEDWindow():
         self.master.update()
         
 ##---------IMPORTANT, MUST UPDATE SELF.MODES WITH ADDITIONAL FUNCTIONS IF YOU WANT THE MODES TO BE USABLE!!!!!!-------#####
-        self.modes = ["thetachi","bassring","levels","randsquares","visualize1"]
+        self.modes = ["thetachi","bassring","levels","randsquares","visualize1","solidcolor"]
         self.bassModes = ["thetachi","bassring"]
         self.visualizerModes = ["visualize1"]
         self.curMode = ("randsquares","default=True")
@@ -119,6 +120,7 @@ class LEDWindow():
 
     def updateMode(self, mode):
         self.curMode = mode
+        self.newMode = True
 
     def updateLEDs(self, matrix):
         args = self.curMode[1]
@@ -273,6 +275,16 @@ class LEDWindow():
             self.bassBooster = self.bassBooster.next
         self.master.update()
 
+
+    def solidcolor(self,matrix,default=True,color="red"):
+        if(self.newMode):
+            self.newMode = False
+            for i in xrange(len(self.ledMatrix)):
+                for j in xrange(len(self.ledMatrix)):
+                    self.w.itemconfigure(self.ledmatrix[i][j],
+                                        fill=color)
+            self.master.update()
+
     def turnOffLEDs(self, Leds):
         if Leds == "bassring":
             for i in xrange(len(self.ledMatrix)):
@@ -290,6 +302,7 @@ class LEDWindow():
                     self.w.itemconfigure(self.ledMatrix[i][j],
                                     fill="white")
         self.master.update()
+
 
     def callback(self):
         self.killed = True

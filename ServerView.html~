@@ -1,0 +1,7 @@
+<!DOCTYPE html>
+<html>
+<form>
+<input id=userName name=userName placeholder="enter name" required>
+<button type=submit>Do it!</button>
+</form> 
+</html>

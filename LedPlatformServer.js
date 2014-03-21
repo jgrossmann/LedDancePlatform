@@ -6,21 +6,16 @@ var fs = require("fs");
 http = require("http");
 
 http.createServer(function(request,response){
-    var parsedUrl = url.parse(request.url, parseQueryString=true);
-    var username = "No Name Entered";
-    if(parsedUrl.query.userName){
-        username = parsedUrl.query.userName;
-    }
-    response.write("LED Dance Platform Mode Interface\n");
-    response.write(username+"\n");
-    var page = 
-        '<!DOCTYPE html>'+
-        '<form>' +
-        '<input id=userName name=userName placeholder="enter name" required>'+
-        '<button type=submit>Do it!</button>'+
-        '</form>'; 
-    response.writeHeader(200, {"Content-Type":"text/html"});
-    response.end(page);
+    //var parsedUrl = url.parse(request.url, parseQueryString=true);
+    //var username = "No Name Entered";
+    //if(parsedUrl.query.userName){
+    //    username = parsedUrl.query.userName;
+    //}
+    //response.write("LED Dance Platform Mode Interface\n");
+    //response.write(username+"\n");
+    response.writeHead(200, {"Content-Type":"text/html"});
+    fs.createReadStream("ServerView.html").pipe(response)
+    response.end();
 }).listen(8080, "0.0.0.0");
 sys.puts("Server Running on port: 8080");
 

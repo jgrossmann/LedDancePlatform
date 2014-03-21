@@ -14,8 +14,8 @@ http.createServer(function(request,response){
     }
     response.writeHead(200, {"Content-Type":"text/html"});
     fs.createReadStream("ServerView.html").pipe(response)
-    response.writeHead(200, {"Content-Type":"text/plain"});
-    response.write(mode)
+    //response.writeHead(200, {"Content-Type":"text/plain"});
+    //response.write(mode)
     //response.end();
 }).listen(8080, "0.0.0.0");
 sys.puts("Server Running on port: 8080");

@@ -1,7 +1,16 @@
 <!DOCTYPE html>
 <html>
+<h1>LED Dance Platform Mode Interface</h1>
+<h3>Check one box then submit to change the mode of the LED Dance Platform.</h3>
+<h5>Checking more than 1 box and submitting will result to default mode which is random squares that do not change.<h6>
 <form>
-<input id=userName name=userName placeholder="enter name" required>
+<input type="checkbox" name="mode" value="randsquares">Random squares not changing<br>
+<input type="checkbox" name="mode" value="randsquares,change=True">Random squares that change to music<br>
+<input type="checkbox" name="mode" value="bassring">Random squares that change to music with a ring on edge that changes to bass<br>
+<input type="checkbox" name="mode" value="visualize1">Visualizer that emanates out from the center<br>
+<input type="checkbox" name="mode" value="levels">Power levels of different ranges in the music<br>
+<input type="checkbox" name="mode" value="thetachi">Displays Theta then a Chi to the bass of the music<br>
+Please remember to close this page when done! It puts unecessary load on the server if you keep it open!
 <button type=submit>Do it!</button>
 </form> 
 </html>

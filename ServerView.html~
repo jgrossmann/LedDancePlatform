@@ -11,7 +11,8 @@
 <input type="radio" name="mode" value="levels">"levels": Power levels of different ranges in the music<br><br>
 <input type="radio" name="mode" value="thetachi">"thetachi": Displays Theta then a Chi to the bass of the music<br><br><br><br>
 
-Please remember to close this page when done! It puts unecessary load on the server if you keep it open!<br><br>
+Please remember to close this page when done!<br>
+It puts unecessary load on the server if you keep it open!<br><br>
 <input type=submit value="Change Mode">
 </form> 
 </html>

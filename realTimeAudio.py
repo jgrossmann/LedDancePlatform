@@ -67,11 +67,6 @@ def plotSomething():
         platform.visualizeFreq = 10
     else:
         platform.visualizeFreq = int(10 - ((SR.longIntensityAvg[SR.longIntensityAvgIndex] - min(SR.longIntensityAvg)) / (max(SR.longIntensityAvg) - min(SR.longIntensityAvg))) * 10)
-    print min(SR.longIntensityAvg)
-    print platform.visualizeWait
-    print platform.visualizeFreq
-    print "power avg:", sum(arr)/len(arr)
-    print SR.intensityAvg[SR.intensityIndex]
     SR.intensityIndex += 1
     SR.longIntensityAvgIndex+=1
     if(SR.intensityIndex >= len(SR.intensityAvg)):

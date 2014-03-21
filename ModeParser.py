@@ -39,6 +39,13 @@ class ModeParser(object):
             self.modes['randsquares'] = "default=True"
                 
         
+    def parseServerData(self, data):
+        """
+        If kill command, send false to kill app otherwise parse into a
+        mode and set self.modes and return self.modes.items()[0]
+        """
+        return self.modes.items()[0]
+
 if __name__ == "__main__":
     parser = ModeParser(sys.argv, ["thetachi","bassring"])
     print parser.modes

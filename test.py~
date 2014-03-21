@@ -16,12 +16,15 @@ class Test(object):
 
     def main(self):
         arg = "test"
+        args = "test1=True,default=False"
         arr = ["hello"]
-        eval("self."+arg+"("+str(arr)+","+"test1=True,default=False"+")") 
+        eval("self."+arg+"("+str(arr)+","+args+")") 
 
        
+def testFunc():
+    print var
 if __name__ == "__main__":
-    testclass = Test()
-    testclass.main()
-    #getattr(testclass, "test")("default=False","test1=True")
+    var = "hello"
+    testFunc()
+
 

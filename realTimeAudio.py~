@@ -66,7 +66,7 @@ def plotSomething():
     elif(SR.longIntensityAvg[SR.longIntensityAvgIndex] < min(SR.longIntensityAvg)):
         platform.visualizeFreq = 10
     else:
-        platform.visualizeFreq = int((10 - (SR.longIntensityAvg[SR.longIntensityAvgIndex] - min(SR.longIntensityAvg)) / (max(SR.longIntensityAvg) - min(SR.longIntensityAvg))) * 10)
+        platform.visualizeFreq = int(10 - ((SR.longIntensityAvg[SR.longIntensityAvgIndex] - min(SR.longIntensityAvg)) / (max(SR.longIntensityAvg) - min(SR.longIntensityAvg))) * 10)
     print min(SR.longIntensityAvg)
     print platform.visualizeWait
     print platform.visualizeFreq

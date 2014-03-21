@@ -7,25 +7,21 @@ import pyaudio
 import threading
 import pylab
 import struct
-import wave
 import alsaaudio as aa
+
 
 class SwhRecorder:
     """Simple, cross-platform class to record from the microphone."""
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
-        self.RATE=44100
-        #self.RATE = self.file.getframerate()
-        print self.RATE
-        self.nChannels = self.file.getnchannels()
-        self.BUFFERSIZE=2**10 #2048 is a good buffer size
+        self.RATE=48100
+        self.BUFFERSIZE=2**10#1024 is a good buffer size
         self.secToRecord=.1
         self.threadsDieNow=False
         self.newAudio=False
         output = aa.PCM(aa.PCM_PLAYBACK, aa.PCM_NORMAL)
-        output.setchannels(self.nChannels)
+        output.setchannels(1)
         output.setrate(self.RATE)
         output.setformat(aa.PCM_FORMAT_S16_LE)
         output.setperiodsize(self.BUFFERSIZE)
@@ -35,6 +31,7 @@ class SwhRecorder:
         self.averages = numpy.zeros(32)
         self.bassavgIndex = 0
         self.avgIndex = 0
+        self.dropFrames = 0
         self.power = numpy.zeros(16)
         self.powerIndex = 0
         self.intensity = 0
@@ -42,6 +39,7 @@ class SwhRecorder:
         self.longIntensityAvg = numpy.zeros(32)
         self.longIntensityAvgIndex=0
         self.intensityIndex = 0
+
         
     def setup(self):
         """initialize sound card."""
@@ -49,33 +47,28 @@ class SwhRecorder:
         #TODO - try/except for sound card selection/initiation
 
         self.buffersToRecord=int(self.RATE*self.secToRecord/self.BUFFERSIZE)
-        #self.buffersToRecord = 1
         if self.buffersToRecord==0: self.buffersToRecord=1
         self.samplesToRecord=int(self.BUFFERSIZE*self.buffersToRecord)
-        #self.samplesToRecord = 2048
         self.chunksToRecord=int(self.samplesToRecord/self.BUFFERSIZE)
-        #self.chunksToRecord = self.buffersToRecord
         self.secPerPoint=1.0/self.RATE
         
         self.p = pyaudio.PyAudio()
-        #self.inStream = self.p.open(format=pyaudio.paInt16,channels=1,rate=self.RATE,input=True,frames_per_buffer=self.BUFFERSIZE)
-        self.inStream = self.file
+        self.inStream = self.p.open(format=pyaudio.paInt16,channels=1,rate=self.RATE,input=True,frames_per_buffer=self.BUFFERSIZE)
+        
         self.xsBuffer=numpy.arange(self.BUFFERSIZE)*self.secPerPoint
         self.xs=numpy.arange(self.chunksToRecord*self.BUFFERSIZE)*self.secPerPoint
-        self.audio=numpy.empty((self.chunksToRecord*self.BUFFERSIZE*self.nChannels),dtype=numpy.int16)               
+        self.audio=numpy.empty((self.chunksToRecord*self.BUFFERSIZE),dtype=numpy.int16) 
     
     def close(self):
         """cleanly back out and release sound card."""
-        self.inStream.close()
         self.p.close(self.inStream)
     
     ### RECORDING AUDIO ###  
     
     def getAudio(self):
         """get a single buffer size worth of audio."""
-        audioString=self.inStream.readframes(self.BUFFERSIZE)
-        #self.output.write(audioString)
-        self.audioString+=audioString
+        audioString=self.inStream.read(self.BUFFERSIZE)
+        self.output.write(audioString)
         temp = numpy.fromstring(audioString,dtype=numpy.int16)
         #temp *= numpy.hanning(len(temp))
         return temp
@@ -84,12 +77,20 @@ class SwhRecorder:
         """record secToRecord seconds of audio."""
         while True:
             if self.threadsDieNow: break
-            for i in range(self.chunksToRecord):
-                self.audio[i*self.nChannels*self.BUFFERSIZE:(i+1)*self.nChannels*self.BUFFERSIZE]=self.getAudio()
-            self.newAudio=True 
-            self.audio *= numpy.hanning(len(self.audio))
-            self.output.write(self.audioString)
-            self.audioString = ""
+            try:
+                for i in range(self.chunksToRecord):
+                    self.audio[i*self.BUFFERSIZE:(i+1)*self.BUFFERSIZE]=self.getAudio()
+                #self.audio *= numpy.hanning(len(self.audio))
+            except IOError:
+                print "dropped frames"
+                self.newAudio = False
+                self.dropFrames += 1
+                if(self.dropFrames >= 5):
+                    break
+            else:
+                self.dropFrames = 0
+                self.newAudio=True 
+                self.audio *= numpy.bartlett(len(self.audio))
             if forever==False: break
     
     def continuousStart(self):
@@ -100,16 +101,6 @@ class SwhRecorder:
     def continuousEnd(self):
         """shut down continuous recording."""
         self.threadsDieNow=True
-
-    ### MATH ###
-            
-    def downsample(self,data,mult):
-        """Given 1D data, return the binned average."""
-        overhang=len(data)%mult
-        if overhang: data=data[:-overhang]
-        data=numpy.reshape(data,(len(data)/mult,mult))
-        data=numpy.average(data,1)
-        return data    
         
     def fft(self,data=None,trimBy=1.5,logScale=False,divBy=2000):
         if data==None: 
@@ -126,23 +117,5 @@ class SwhRecorder:
         xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
-        print "average", self.averages[self.avgIndex]
-        print "bassavg",self.bassaverages.mean()
-        print "bassstd",self.bassaverages.std()
-        print "bassmax",numpy.amax(ys[:len(ys)/17])
-        print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
-        #print "avg", self.averages.mean()
-        #print "std", self.averages.std()
-        #print "currAvg",ys.mean()
-        #print "avg + std", self.averages.mean() + self.averages.std()
-        #print "power avg", self.power.mean()
-        #print "power", (ys**2).sum()
-        return xs,ys
-    
-    ### VISUALIZATION ###
-    
-    def plotAudio(self):
-        """open a matplotlib popup window showing audio data."""
-        pylab.plot(self.audio.flatten())
-        pylab.show()        
+        return xs,ys         
             

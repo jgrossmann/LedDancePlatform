@@ -15,7 +15,7 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
+        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
         self.RATE=44100
         #self.RATE = self.file.getframerate()
         print self.RATE
@@ -44,21 +44,15 @@ class SwhRecorder:
         self.intensityIndex = 0
         
     def setup(self):
-        """initialize sound card."""
-        #TODO - windows detection vs. alsa or something for linux
-        #TODO - try/except for sound card selection/initiation
 
         self.buffersToRecord=int(self.RATE*self.secToRecord/self.BUFFERSIZE)
-        #self.buffersToRecord = 1
         if self.buffersToRecord==0: self.buffersToRecord=1
         self.samplesToRecord=int(self.BUFFERSIZE*self.buffersToRecord)
-        #self.samplesToRecord = 2048
         self.chunksToRecord=int(self.samplesToRecord/self.BUFFERSIZE)
-        #self.chunksToRecord = self.buffersToRecord
         self.secPerPoint=1.0/self.RATE
         
         self.p = pyaudio.PyAudio()
-        #self.inStream = self.p.open(format=pyaudio.paInt16,channels=1,rate=self.RATE,input=True,frames_per_buffer=self.BUFFERSIZE)
+        #use recorder.py file to use an input stream instead of wave file
         self.inStream = self.file
         self.xsBuffer=numpy.arange(self.BUFFERSIZE)*self.secPerPoint
         self.xs=numpy.arange(self.chunksToRecord*self.BUFFERSIZE)*self.secPerPoint
@@ -76,9 +70,7 @@ class SwhRecorder:
         audioString=self.inStream.readframes(self.BUFFERSIZE)
         #self.output.write(audioString)
         self.audioString+=audioString
-        temp = numpy.fromstring(audioString,dtype=numpy.int16)
-        #temp *= numpy.hanning(len(temp))
-        return temp
+        return numpy.fromstring(audioString,dtype=numpy.int16)
         
     def record(self,forever=True):
         """record secToRecord seconds of audio."""
@@ -126,16 +118,6 @@ class SwhRecorder:
         xs*=self.RATE/(self.BUFFERSIZE * (4096/self.BUFFERSIZE))
         if divBy:
             ys=ys/float(divBy)
-        print "bassavg",self.bassaverages.mean()
-        print "bassstd",self.bassaverages.std()
-        print "bassmax",numpy.amax(ys[:len(ys)/17])
-        print "bassavg + bassstd",self.bassaverages.mean() + self.bassaverages.std()
-        #print "avg", self.averages.mean()
-        #print "std", self.averages.std()
-        #print "currAvg",ys.mean()
-        #print "avg + std", self.averages.mean() + self.averages.std()
-        #print "power avg", self.power.mean()
-        #print "power", (ys**2).sum()
         return xs,ys
     
     ### VISUALIZATION ###

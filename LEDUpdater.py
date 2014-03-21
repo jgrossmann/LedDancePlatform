@@ -1,8 +1,7 @@
 from Tkinter import *
-import alsaaudio
-import audioop
 import random
 import time
+import sys
 
 def main():
     window = LEDWindow()
@@ -63,6 +62,7 @@ class ThetaChiLetter():
 class LEDWindow():
     def __init__(self):
         self.ledMatrix = [[None for x in xrange(8)]for x in xrange (8)]
+
         red = Colors("red",None)
         white = Colors("white",red)
         green = Colors("green", white)
@@ -96,7 +96,9 @@ class LEDWindow():
         self.thetaChiLetter = theta
         self.visualizeWaves = [None for x in xrange(4)]
         self.master = Tk()
+        self.master.wm_title("LED Dance Platform")
         self.master.protocol("WM_DELETE_WINDOW", self.callback)
+        self.killed = False
         self.w = Canvas(self.master, height=320, width=320)
         x = 0
         for i in range(320,39,-40):
@@ -110,6 +112,8 @@ class LEDWindow():
         
 ##---------IMPORTANT, MUST UPDATE SELF.MODES WITH ADDITIONAL FUNCTIONS IF YOU WANT THE MODES TO BE USABLE!!!!!!-------#####
         self.modes = ["thetachi","bassring","levels","randsquares","visualize1"]
+        self.bassModes = ["thetachi","bassring"]
+        self.visualizerModes = ["visualize1"]
         self.curMode = ("randsquares","default=True")
         
 
@@ -130,6 +134,7 @@ class LEDWindow():
                 self.updateMode(("randsquares","default=True"))
                 args = self.curMode[1].split(",")
                 getattr(self, self.curMode[0])(matrix,*args)
+
 
     def randsquares(self,matrix,default=True,change=False):
         if(change):
@@ -166,24 +171,26 @@ class LEDWindow():
             return
         self.visualizeWait = 0
         if(self.visualizeWaves[0] == None):
-            self.visualizeWaves[0] = self.mainColors
+            self.visualizeWaves[0] = self.colors[random.randrange(len(self.colors))]
+        color = self.visualizeWaves[0]
         x = 3
         y = 5
         for i in xrange(len(self.visualizeWaves)):
             if(self.visualizeWaves[i] != None):
                 for j in xrange(x,y):
-                    self.w.itemconfigure(self.ledMatrix[x][j],fill=self.visualizeWaves[i].color)
-                    self.w.itemconfigure(self.ledMatrix[y-1][j],fill=self.visualizeWaves[i].color)
-                    self.w.itemconfigure(self.ledMatrix[j][x],fill=self.visualizeWaves[i].color)
-                    self.w.itemconfigure(self.ledMatrix[j][y-1],fill=self.visualizeWaves[i].color)
+                    self.w.itemconfigure(self.ledMatrix[x][j],fill=self.visualizeWaves[i])
+                    self.w.itemconfigure(self.ledMatrix[y-1][j],fill=self.visualizeWaves[i])
+                    self.w.itemconfigure(self.ledMatrix[j][x],fill=self.visualizeWaves[i])
+                    self.w.itemconfigure(self.ledMatrix[j][y-1],fill=self.visualizeWaves[i])
                 self.master.update()
             x-=1
             y+=1
-        self.mainColors = self.mainColors.next
+        while color == self.visualizeWaves[0]:
+            color = self.colors[random.randrange(len(self.colors))]
         for i in xrange(len(self.visualizeWaves)):
             if(i == 0):
                 nextcolor = self.visualizeWaves[i]
-                self.visualizeWaves[i] = self.mainColors
+                self.visualizeWaves[i] = color
                 continue
             if(self.visualizeWaves[i] != None):
                 curColor = self.visualizeWaves[i]
@@ -285,7 +292,9 @@ class LEDWindow():
         self.master.update()
 
     def callback(self):
+        self.killed = True
         self.master.destroy()
+        sys.exit("Killing Program")
 
     def hexToRGB(self,hex):
         hex = hex.lstrip('#')

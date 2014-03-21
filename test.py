@@ -21,8 +21,13 @@ class Test(object):
         eval("self."+arg+"("+str(arr)+","+args+")") 
 
        
+def testFunc():
+    print var
+    var = var + 1
+    print var
+
 if __name__ == "__main__":
-    testclass = Test()
-    testclass.main()
-    #getattr(testclass, "test")("default=False","test1=True")
+    var = 1
+    testFunc()
+
 

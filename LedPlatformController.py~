@@ -51,6 +51,8 @@ if __name__ == "__main__":
     parser = ModeParser(sys.argv, platform.modes)
     mode = parser.modes.items()[0]
     platform.updateMode(mode)
+    #Start up display
+    platform.updateMode(("textdisplay","text='321'"))
 
     #Sets up socket connection to node.js server
     server = ServerSocketConnection("/tmp/Led_Dance_Platform_Socket")
@@ -85,7 +87,7 @@ if __name__ == "__main__":
             """
 
             analyzeAudio()
-            data = server.listen(.01)
+            data = server.listen(.001)
 
             if(data):
                 data = parser.parseServerData(data)

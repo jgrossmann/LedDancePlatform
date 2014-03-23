@@ -2,7 +2,7 @@ from Tkinter import *
 import random
 import time
 import sys
-from LedLetters import *
+from LedSymbols import *
 
 def main():
     window = LEDWindow()
@@ -117,6 +117,7 @@ class LEDWindow():
         self.freqIntervalModes = ["levels"]
         self.curMode = ("randsquares","default=True")
         self.lastMode = None
+        self.symbolDict = {'!':exclamation,'.':period,',':comma,'?':question,'$':dollar, '#':pound,'/':backslash,'+':plus,'-':minus,'=':equals, '<':lessthan, '>':greaterthan, ':':colon}
         
 
     def updateMode(self, mode):
@@ -313,7 +314,7 @@ class LEDWindow():
 
     def textdisplay(self,matrix,default=True,text=False):
         if(len(self.letterMatrix) > 0):
-            if(self.letterWait < 4):
+            if(self.letterWait < 2):
                 self.letterWait += 1
                 return
             else:
@@ -332,11 +333,19 @@ class LEDWindow():
         elif(text):
             #self.textDisplayTimer = 0.0
             symbol = text[0]
-            if(symbol.isalpha() == False and symbol.isinstance(int)==False and symbol.isspace()==False):
-                self.updateMode(("randsquares","default=True"))
-                return
-           
-            self.letterMatrix = [[]]+eval(symbol+"()")
+            if(symbol.isalpha() == False and symbol.isdigit()==False and symbol.isspace()==False):
+                if(symbol not in self.symbolDict):
+                    self.updateMode(("textdisplay","text="+"'"+text[1:]+"'"))
+                    return
+            if(symbol.isdigit()):
+                self.letterMatrix = [[]]+eval("num"+symbol+"()")
+            elif(symbol.isspace()):
+                self.letterMatrix = [[],[],[],[]]
+            elif(symbol in self.symbolDict):
+                self.letterMatrix = [[]]+self.symbolDict[symbol]()               
+            else:
+                symbol = symbol.lower()
+                self.letterMatrix = [[]]+eval(symbol+"()")
             if(len(text) == 1):
                 self.letterMatrix += [[],[],[],[],[],[],[],[]]
             self.updateMode(("textdisplay","text="+"'"+text[1:]+"'"))
@@ -348,14 +357,20 @@ class LEDWindow():
                 self.updateMode(("randsquares","default=True"))                
        
 
-    def solidcolor(self,matrix,default=True,color="red"):
+    def solidcolor(self,matrix,default=True,colorrgb=False):
         if(self.newMode):
             self.newMode = False
-            for i in xrange(len(self.ledMatrix)):
-                for j in xrange(len(self.ledMatrix)):
-                    self.w.itemconfigure(self.ledMatrix[i][j],
-                                        fill=color)
-            self.master.update()
+            if(colorrgb):
+                colorrgb = eval(colorrgb)
+                for i in colorrgb:
+                    if i < 0 or i > 255:
+                        self.updateMode(("randsquares","default=True"))
+                        return
+                for i in xrange(len(self.ledMatrix)):
+                    for j in xrange(len(self.ledMatrix)):
+                        self.w.itemconfigure(self.ledMatrix[i][j],
+                                            fill=self.rgbToHex(colorrgb))
+                self.master.update()
 
     def turnOffLEDs(self, Leds):
         if Leds == "bassring":

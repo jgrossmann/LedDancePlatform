@@ -43,7 +43,7 @@ def n():
     return [[1,2,3,4,5],[4],[3],[1,2,3,4,5]]
 
 def o():
-    return [[2,3,4],[1,5],[2,3,4]]
+    return [[1,2,3,4,5],[1,5],[1,2,3,4,5]]
 
 def p():
     return [[1,2,3,4,5],[3,5],[4]]
@@ -78,9 +78,70 @@ def y():
 def z():
     return [[1,2,5],[1,3,5],[1,4,5]]
 
+def num0():
+    return [[2,3,4],[1,5],[2,3,4]]
+
 def num1():
     return [[1,4],[1,2,3,4,5],[1]]
 
 def num2():
     return [[1,2,3,5],[1,3,5],[1,3,4,5]]
     
+def num3():
+    return [[1,5],[1,3,5],[1,2,3,4,5]]
+
+def num4():
+    return [[3,4,5],[3],[1,2,3,4,5]]
+
+def num5():
+    return [[1,3,4,5],[1,3,5],[2,3,5]]
+
+def num6():
+    return [[1,2,3,4,5],[1,3],[1,2,3]]
+
+def num7():
+    return [[5],[5],[1,2,3,4,5]]
+
+def num8():
+    return [[1,2,3,4,5],[1,3,5],[1,2,3,4,5]]
+
+def num9():
+    return [[3,4,5],[3,5],[1,2,3,4,5]]
+
+def exclamation():
+    return [[1,3,4,5]]
+
+def period():
+    return [[1]]
+
+def comma():
+    return [[1],[2]]
+
+def question():
+    return [[5,6],[6],[1,3,4,6],[5,6]]
+
+def dollar():
+    return [[1,3,4,5],[0,1,3,5,6],[1,2,3,5]]
+
+def pound():
+    return [[2,4],[1,2,3,4,5],[2,4],[1,2,3,4,5],[2,4]]
+
+def backslash():
+    return [[1],[2],[3],[4],[5]]
+
+def plus():
+    return [[3],[2,3,4],[3]]
+    
+def minus():
+    return [[3],[3],[3]]
+
+def equals():
+    return [[2,4],[2,4],[2,4]]
+
+def lessthan():
+    return [[3],[2,4],[1,5]]
+
+def greaterthan():
+    return [[1,5],[2,4],[3]]
+
+

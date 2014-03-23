@@ -21,9 +21,15 @@ http.createServer(function(request,response){
             if(parsedUrl.query.text){
                 text = parsedUrl.query.text;
                 mode = mode+" text="+"'"+text+"'";
-                sys.puts(mode);
             };
         };
+        if(mode == "solidcolor"){
+            if(parsedUrl.query.r && parsedUrl.query.g && parsedUrl.query.b){
+                rgb = "'("+parsedUrl.query.r+","+parsedUrl.query.g+","+parsedUrl.query.b+")'";       
+                mode = mode+" colorrgb="+rgb;
+            };
+        };
+        sys.puts(mode);
         platform.write(mode)
         response.writeHead(301,
             {Location: "http://"+request.connection.remoteAddress+":"+request.connection.address().port})

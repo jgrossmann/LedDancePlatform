@@ -46,11 +46,14 @@ class ModeParser(object):
         """
         if(data == "kill"):
             return False
-        mode = data.split(" ")
+        mode = data.split(" ",1)
         if(len(mode) == 1):
             self.modes= {mode[0]:"default=True"}
         elif(len(mode) == 2):
-            self.modes = {mode[0]:mode[1]}
+            if(mode[1].count("'") > 2 or mode[1].count('"') > 2):
+                return self.modes.items()[0]
+            else:
+                self.modes = {mode[0]:mode[1]}
         return self.modes.items()[0]
 
 if __name__ == "__main__":

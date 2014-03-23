@@ -51,6 +51,8 @@ if __name__ == "__main__":
     parser = ModeParser(sys.argv, platform.modes)
     mode = parser.modes.items()[0]
     platform.updateMode(mode)
+    #Start up display
+    platform.updateMode(("textdisplay","text='3 2 1'"))
 
     #Sets up socket connection to node.js server
     server = ServerSocketConnection("/tmp/Led_Dance_Platform_Socket")

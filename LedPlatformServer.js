@@ -32,7 +32,7 @@ http.createServer(function(request,response){
         sys.puts(mode);
         platform.write(mode)
         response.writeHead(301,
-            {Location: "http://"+request.connection.remoteAddress+":"+request.connection.address().port})
+            {Location: "http://"+request.connection.localAddress+":"+request.connection.address().port})
         response.end();
     };
     fs.createReadStream("ServerView.html").pipe(response);

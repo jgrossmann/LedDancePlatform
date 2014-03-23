@@ -25,14 +25,15 @@ http.createServer(function(request,response){
         };
         if(mode == "solidcolor"){
             if(parsedUrl.query.r && parsedUrl.query.g && parsedUrl.query.b){
-                rgb = "'("+parsedUrl.query.r+parsedUrl.query.g+parsedUrl.query.b+")'";       
+                rgb = "'("+parsedUrl.query.r+","+parsedUrl.query.g+","+parsedUrl.query.b+")'";       
                 mode = mode+" colorrgb="+rgb;
             };
         };
         sys.puts(mode);
         platform.write(mode)
+        sys.puts(request.connection.localAddress)
         response.writeHead(301,
-            {Location: "http://"+request.connection.remoteAddress+":"+request.connection.address().port})
+            {Location: "http://"+request.connection.localAddress+":"+request.connection.address().port})
         response.end();
     };
     fs.createReadStream("ServerView.html").pipe(response);

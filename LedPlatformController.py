@@ -7,12 +7,14 @@ import numpy
 import time
 import math
 import traceback
+import subprocess
+import threading
 from FileRecorder import *
 #from MicInRecorder import *
 from LEDUpdater import LEDWindow
 from ModeParser import *
 from AudioAnalyzer import *
-from ServerSocektConnection import *
+from ServerSocketConnection import *
 
 
 
@@ -29,7 +31,7 @@ def analyzeAudio():
     if(mode[0] in platform.bassModes):
         AA.analyzeBass(ys,xs)
             
-    if(mode[0] in platform.visualizerModes):
+    if(mode[0] in platform.freqIntervalModes):
         fIntervals = AA.analyzeFrequencyIntervals(ys,xs)
 
     AA.analyzeNonBass(ys,xs)
@@ -51,8 +53,18 @@ if __name__ == "__main__":
     platform.updateMode(mode)
 
     #Sets up socket connection to node.js server
-    server = ServerSocketConnection("/tmp/Led_Dance_Platform_Server")
-    server.connectToSocket()
+    server = ServerSocketConnection("/tmp/Led_Dance_Platform_Socket")
+    #Spawn a thread to connect to the node.js server so it does not block
+    threadPiConnect = threading.Thread(target=server.connectToSocket, args=())
+    threadPiConnect.start()
+    print "started connection attempt"
+    #spawn a subprocess for node.js server
+    nodeServer = subprocess.Popen(["node","/home/john/LedDancePlatform/LedPlatformServer.js"])
+    print "started server"
+    #wait for the connection to be made between this program and node.js server
+    threadPiConnect.join()
+    "connection thread done"
+
     for i in xrange(50):
         #Making sure there is no junk on the socket
         data = server.listen(.05)
@@ -65,31 +77,36 @@ if __name__ == "__main__":
     #Ends if window is killed
     while platform.killed == False:
         try:
-        """
-        Mainloop which tries to analyze new audio data if there is new data
-        then it very briefly polls the node.js server to see if there is 
-        new data. If new data, it should be parsed into mode form and 
-        the dance platform updater should be notified.
-        """
+            """
+            Mainloop which tries to analyze new audio data if there is new data
+            then it very briefly polls the node.js server to see if there is 
+            new data. If new data, it should be parsed into mode form and 
+            the dance platform updater should be notified.
+            """
 
             analyzeAudio()
-            data = server.listen(.01)
+            data = server.listen(.001)
 
             if(data):
                 data = parser.parseServerData(data)
-                if(parser.parseServerData(data) == False):
+                if(data == False):
                     #if returns False, kill was called from server
                     #otherwise data should be updated appropriately
                     break
-                platform.updateMode(data)
+                mode = data
+                platform.updateMode(mode)
+            
         except:
             print traceback.format_exc()
             SR.continuousEnd()
             SR.close()
+            server.disconnectSocket()
+            nodeServer.kill()
             sys.exit("Killing App")
 
-    #Kill threads, cleanup, exit program   
+    #Kill threads, kills node server, cleanup, exit program   
     SR.continuousEnd()
-    server.disconnectSocket()
     SR.close()
+    server.disconnectSocket()
+    nodeServer.kill()
     sys.exit("Killing App")

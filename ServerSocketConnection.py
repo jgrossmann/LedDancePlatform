@@ -6,6 +6,8 @@ import os
 import socket
 import time
 import select
+import threading
+import subprocess
 
 class ServerSocketConnection(object):
     #Creates a simple unix socket listener for same computer communication
@@ -16,16 +18,35 @@ class ServerSocketConnection(object):
     def connectToSocket(self):
         if(os.path.exists(self.path)):
             os.remove(self.path)
-        self.sock.bind(path)
+        self.sock.bind(self.path)
+        self.sock.listen(1)
+        c,addr = self.sock.accept()
+        self.client = c
+        
 
     def listen(self, time):
-        read, write, error = select.select([self.sock],[],[],0.05)
+        read, write, error = select.select([self.client],[],[],time)
         if(len(read) > 0):
-            (data,addr) = self.sock.recvfrom(2048)
+            data = read[0].recv(2048)
             return data
         return False
 
     def disconnectSocket(self):
         self.sock.close()
         os.remove(self.path)
+
+if __name__ == "__main__":
+    sock = ServerSocketConnection("/tmp/Led_Dance_Platform_Socket")
+    thread = threading.Thread(target=sock.connectToSocket, args=())
+    thread.start()
+    print "past thread"
+    sub = subprocess.Popen(["node","/home/john/LedDancePlatform/LedPlatformServer.js"])
+    thread.join()
+    
+    #s = sock.connectToSocket()
+    print sock.listen(10)
+    sock.disconnectSocket()
+    print "done"
+    sub.kill()
+        
         

@@ -44,6 +44,13 @@ class ModeParser(object):
         If kill command, send false to kill app otherwise parse into a
         mode and set self.modes and return self.modes.items()[0]
         """
+        if(data == "kill"):
+            return False
+        mode = data.split(" ")
+        if(len(mode) == 1):
+            self.modes= {mode[0]:"default=True"}
+        elif(len(mode) == 2):
+            self.modes = {mode[0]:mode[1]}
         return self.modes.items()[0]
 
 if __name__ == "__main__":

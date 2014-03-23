@@ -22,10 +22,9 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
+        self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
         self.RATE=44100
         #self.RATE = self.file.getframerate()
-        print self.RATE
         self.nChannels = self.file.getnchannels()
         self.BUFFERSIZE=2**10 #2048 is a good buffer size
         self.secToRecord=.1

@@ -106,7 +106,6 @@ class AudioAnalyzer(object):
             self.platform.visualizeFreq = 10
         else:
             self.platform.visualizeFreq = int(10 -((curIntensity - longMin)/((longMax - longMin)*.75)) * 10)
-        print self.platform.visualizeFreq
         #Randsquares mode uses intensity average instead of norm avg
         if(self.platform.curMode[0] == "randsquares"):
             if(curIntensity > self.intensityAvg.mean() + self.intensityAvg.std()):

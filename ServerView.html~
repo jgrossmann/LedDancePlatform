@@ -22,7 +22,7 @@
 
 <input type="radio" name="mode" value="solidcolor">Displays solid RGB color on platform (Lookup the values if you don't know)<br>
 
-R:<input type="text" name="red" value=0-255>G:<input type="text" name="g" value=0-255>B:<input type="text" name="b" value=0-255><br><br>
+R:<input type="text" name="r" value=0-255>G:<input type="text" name="g" value=0-255>B:<input type="text" name="b" value=0-255><br><br>
 
 <input type="radio" name="mode" value="textdisplay">Check this to display text you type into the input space<br>
 Display:<input type="text" name="text"><br><br><br><br>

@@ -56,7 +56,8 @@ class SwhRecorder:
     def close(self):
         """cleanly back out and release sound card."""
         self.inStream.close()
-        self.p.close(self.inStream)
+        #only for mic in audio
+        #self.p.close(self.inStream)
     
     ### RECORDING AUDIO ###  
     

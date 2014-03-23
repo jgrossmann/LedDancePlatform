@@ -31,6 +31,11 @@ class ServerSocketConnection(object):
             return data
         return False
 
+    def send(self, data, time):
+        read, write, error = select.select([],[self.client],[],time)
+        if(len(write) > 0):
+            write[0].send(data)
+
     def disconnectSocket(self):
         self.sock.close()
         os.remove(self.path)

@@ -314,7 +314,7 @@ class LEDWindow():
 
     def textdisplay(self,matrix,default=True,text=False):
         if(len(self.letterMatrix) > 0):
-            if(self.letterWait < 2):
+            if(self.letterWait < 1):
                 self.letterWait += 1
                 return
             else:

@@ -369,7 +369,7 @@ class LEDWindow():
                 for i in xrange(len(self.ledMatrix)):
                     for j in xrange(len(self.ledMatrix)):
                         self.w.itemconfigure(self.ledMatrix[i][j],
-                                            fill=self.rgbToHex(colorrgb)
+                                            fill=self.rgbToHex(colorrgb))
                 self.master.update()
 
     def turnOffLEDs(self, Leds):

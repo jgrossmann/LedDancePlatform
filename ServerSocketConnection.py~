@@ -22,7 +22,6 @@ class ServerSocketConnection(object):
         self.sock.listen(1)
         c,addr = self.sock.accept()
         self.client = c
-        print c
         
 
     def listen(self, time):
@@ -31,6 +30,11 @@ class ServerSocketConnection(object):
             data = read[0].recv(2048)
             return data
         return False
+
+    def send(self, data, time):
+        read, write, error = select.select([],[self.sock],[],time)
+        if(len(write) > 0):
+            write[0].send(data)
 
     def disconnectSocket(self):
         self.sock.close()

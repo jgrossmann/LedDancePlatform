@@ -22,7 +22,7 @@ class SwhRecorder:
     
     def __init__(self):
         """minimal garb is executed when class is loaded."""
-        self.file = wave.open('/home/john/LedDancePlatform/AllNightLonger.wav', 'r')
+        self.file = wave.open('/home/john/LedDancePlatform/pony.wav', 'r')
         self.RATE=44100
         #self.RATE = self.file.getframerate()
         self.nChannels = self.file.getnchannels()
@@ -56,7 +56,7 @@ class SwhRecorder:
     def close(self):
         """cleanly back out and release sound card."""
         self.inStream.close()
-        self.p.close(self.inStream)
+        #self.p.close(self.inStream)
     
     ### RECORDING AUDIO ###  
     

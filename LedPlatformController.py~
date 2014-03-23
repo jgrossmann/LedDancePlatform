@@ -52,7 +52,13 @@ if __name__ == "__main__":
     mode = parser.modes.items()[0]
     platform.updateMode(mode)
     #Start up display
-    platform.updateMode(("textdisplay","text='321'"))
+    platform.updateMode(("textdisplay","text='3 2 1'"))
+    password = ""
+    with open('ServerPassword.txt') as f:
+        for line in f:
+            line = line.strip()
+            password += line
+    
 
     #Sets up socket connection to node.js server
     server = ServerSocketConnection("/tmp/Led_Dance_Platform_Socket")
@@ -65,7 +71,8 @@ if __name__ == "__main__":
     print "started server"
     #wait for the connection to be made between this program and node.js server
     threadPiConnect.join()
-    "connection thread done"
+    time.sleep(1)
+    server.send(password, .5)
 
     for i in xrange(50):
         #Making sure there is no junk on the socket
@@ -101,14 +108,14 @@ if __name__ == "__main__":
         except:
             print traceback.format_exc()
             SR.continuousEnd()
-            SR.close()
+            #SR.close()
             server.disconnectSocket()
             nodeServer.kill()
             sys.exit("Killing App")
 
     #Kill threads, kills node server, cleanup, exit program   
     SR.continuousEnd()
-    SR.close()
+    #SR.close()
     server.disconnectSocket()
     nodeServer.kill()
     sys.exit("Killing App")

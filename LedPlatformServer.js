@@ -17,15 +17,19 @@ http.createServer(function(request,response){
     response.writeHead(200, {"Content-Type":"text/html"});
     if(parsedUrl.query.mode){
         mode = parsedUrl.query.mode;
-        str = 
-            "<!DOCTYPE html>"+
-            "<html>"+
-            "<h3>The mode has been changed!</h3>" +
-            "</html>";
-        response.write(str);
+        if(mode == "textdisplay"){
+            if(parsedUrl.query.text){
+                text = parsedUrl.query.text;
+                mode = mode+" text="+"'"+text+"'";
+                sys.puts(mode);
+            };
+        };
         platform.write(mode)
+        response.writeHead(301,
+            {Location: "http://"+request.connection.remoteAddress+":"+request.connection.address().port})
+        response.end();
     };
-    fs.createReadStream("ServerView.html").pipe(response)
+    fs.createReadStream("ServerView.html").pipe(response);
     //response.writeHead(200, {"Content-Type":"text/plain"});
     //response.write(mode)
     //response.end();

@@ -4,13 +4,17 @@
 <h3>Check one box then submit to change the mode of the LED Dance Platform.</h3>
 <h5>Each one shows the mode as it is specified in the software, and a description of each.<h6>
 <form>
-<input type="radio" name="mode" value="randsquares" checked>"randsquares": Random squares not changing<br><br>
-<input type="radio" name="mode" value="randsquares change=True">"randsquares change=True": Random squares that change to music<br><br>
+<input type="radio" name="mode" value="randsquares" checked>Random squares not changing<br><br>
+<input type="radio" name="mode" value="randsquares change=True">Random squares that change to music<br><br>
+<input type="radio" name="mode" value="randsquares halfblack=True">Half black squares half random squares<br><br>
+<input type="radio" name="mode" value="randsquares change=True,halfblack=True">Half black squares half random squares that change to the music<br><br>
 <input type="radio" name="mode" value="bassring">"bassring": Random squares that change to music with a ring on edge that changes to bass<br><br>
 <input type="radio" name="mode" value="visualize1">"visualize1": Visualizer that emanates out from the center<br><br>
 <input type="radio" name="mode" value="levels">"levels": Power levels of different ranges in the music<br><br>
 <input type="radio" name="mode" value="thetachi">"thetachi": Displays Theta then a Chi to the bass of the music<br><br>
-<input type="radio" name="mode" value="solidcolor color='red'">"solidcolor color='red'": Displays solid red color on entire platform<br><br><br><br>
+<input type="radio" name="mode" value="solidcolor color='red'">"solidcolor color='red'": Displays solid red color on entire platform<br><br>
+<input type="radio" name="mode" value="textdisplay">Check this to display text you type into the input space
+<input type="text" name="text"><br><br><br><br>
 <input type=submit value="Change Mode">
 </form> 
 </html>

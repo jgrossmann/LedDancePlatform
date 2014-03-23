@@ -2,6 +2,7 @@ from Tkinter import *
 import random
 import time
 import sys
+from LedLetters import *
 
 def main():
     window = LEDWindow()
@@ -82,6 +83,8 @@ class LEDWindow():
         chi = ThetaChiLetter("chi", theta)
         theta.next = chi
 
+        self.letterMatrix = []
+        self.letterWait = 0
         self.newMode = True
         self.bassBooster = red
         self.init = 0
@@ -108,14 +111,17 @@ class LEDWindow():
         self.master.update()
         
 ##---------IMPORTANT, MUST UPDATE SELF.MODES WITH ADDITIONAL FUNCTIONS IF YOU WANT THE MODES TO BE USABLE!!!!!!-------#####
-        self.modes = ["thetachi","bassring","levels","randsquares","visualize1","solidcolor"]
+        self.modes = ["thetachi","bassring","levels","randsquares","visualize1","solidcolor","textdisplay"]
         self.bassModes = ["thetachi","bassring"]
         self.visualizerModes = ["visualize1"]
         self.freqIntervalModes = ["levels"]
         self.curMode = ("randsquares","default=True")
+        self.lastMode = None
         
 
     def updateMode(self, mode):
+        if(mode[0] == "textdisplay" and self.curMode[0] != "textdisplay"):
+            self.lastMode = self.curMode
         self.curMode = mode
         self.newMode = True
         self.init = 0
@@ -136,7 +142,7 @@ class LEDWindow():
                 getattr(self, self.curMode[0])(matrix,*args)
 
 
-    def randsquares(self,matrix,default=True,change=False):
+    def randsquares(self,matrix,default=True,change=False,halfblack=False):
         if(change):
             if(self.updateSquares):
                 self.updateSquares = False
@@ -148,6 +154,10 @@ class LEDWindow():
                 for j in xrange(len(self.ledMatrix)):
                     touchColors = []
                     availColors = []
+                    if(halfblack):
+                        if((i+j)%2 == 0):
+                            self.w.itemconfigure(self.ledMatrix[i][j],fill=self.rgbToHex((1,1,1)))
+                            continue
                     if(j > 0):
                         touchColors.append(self.w.itemcget(self.ledMatrix[i][j-1], "fill"))
                         if(i < len(self.ledMatrix)-1):
@@ -301,6 +311,43 @@ class LEDWindow():
         self.master.update()
 
 
+    def textdisplay(self,matrix,default=True,text=False):
+        if(len(self.letterMatrix) > 0):
+            if(self.letterWait < 4):
+                self.letterWait += 1
+                return
+            else:
+                self.letterWait = 0
+
+            for i in xrange(len(self.ledMatrix)-1,0,-1):
+                for j in xrange(len(self.ledMatrix)):
+                    self.w.itemconfigure(self.ledMatrix[i][j],fill=self.w.itemcget(self.ledMatrix[i-1][j],"fill"))
+            self.turnOffLEDs("letters")
+
+            for i in self.letterMatrix[0]:
+                self.w.itemconfigure(self.ledMatrix[0][i],fill="red")
+            self.letterMatrix = self.letterMatrix[1:]
+            self.master.update()
+
+        elif(text):
+            #self.textDisplayTimer = 0.0
+            symbol = text[0]
+            if(symbol.isalpha() == False and symbol.isinstance(int)==False and symbol.isspace()==False):
+                self.updateMode(("randsquares","default=True"))
+                return
+           
+            self.letterMatrix = [[]]+eval(symbol+"()")
+            if(len(text) == 1):
+                self.letterMatrix += [[],[],[],[],[],[],[],[]]
+            self.updateMode(("textdisplay","text="+"'"+text[1:]+"'"))
+
+        else:
+            if(self.lastMode != None):
+                self.updateMode(self.lastMode)
+            else:
+                self.updateMode(("randsquares","default=True"))                
+       
+
     def solidcolor(self,matrix,default=True,color="red"):
         if(self.newMode):
             self.newMode = False
@@ -320,6 +367,9 @@ class LEDWindow():
                 self.w.itemconfigure(self.ledMatrix[0][i],
                                     fill="white")
                 self.w.itemconfigure(self.ledMatrix[len          (self.ledMatrix)-1][i],fill="white")
+        elif Leds == "letters":
+            for i in xrange(len(self.ledMatrix)):
+                self.w.itemconfigure(self.ledMatrix[0][i],fill="white")
         else:
             
             for i in range(len(self.ledMatrix)):

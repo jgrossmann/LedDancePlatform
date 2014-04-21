@@ -1,0 +1,390 @@
+import random
+import time
+import sys
+import spidev
+import array
+from LedSymbols import *
+
+spi = spidev.SpiDev()
+
+def main():
+    return            
+    
+class Colors():
+    def __init__(self, color, next):
+        self.color = color
+        self.next = next
+
+class ThetaChiLetter():
+    def __init__(self, letter, next):
+        self.letter = letter
+        self.next = next
+        
+
+
+class LEDPlatform():
+    def __init__(self):
+        self.numRows = 14
+        self.numColumns = 7
+        self.numLeds = self.numRows * self.numColumns
+        self.LEDs= [0] * self.numLeds
+
+        red = self.Colors(self.Color(255,0,0),None)
+        white = Colors(self.Color(255,255,255),red)
+        limegreen = Colors(self.Color(0,255,0), white)
+        darkorange = Colors(self.Color(255,140,0),limegreen)
+        blue = Colors(self.Color(0,0,255),darkorange)
+        yellow = Colors(self.Color(255,255,0),blue)
+        darkviolet = Colors(self.Color(148,0,211), yellow)
+        #purple?
+        cyan = Colors(self.Color(0,255,255),darkviolet)
+        hotpink = Colors(self.Color(255,105,180),cyan)
+        green = Colors(self.Color(0,128,0),hotpink)
+        red.next = green
+        
+        self.colors = []
+        color = red
+        for i in xrange(10):
+            self.colors.append(color.color)
+            color = color.next
+
+        theta = ThetaChiLetter("theta", None)
+        chi = ThetaChiLetter("chi", theta)
+        theta.next = chi
+
+        self.letterMatrix = []
+        self.letterWait = 0
+        self.newMode = True
+        self.bassBooster = red
+        self.init = 0
+        self.mainColors = red
+        self.visualizeFreq = 10
+        self.visualizeWait = 0
+        self.updateSquares = False
+        self.bass = False
+        self.thetaChiLetter = theta
+        self.visualizeWaves = [None for x in xrange(4)]
+        self.killed = False
+        
+        
+##---------IMPORTANT, MUST UPDATE SELF.MODES WITH ADDITIONAL FUNCTIONS IF YOU WANT THE MODES TO BE USABLE!!!!!!-------#####
+        self.modes = ["thetachi","bassring","levels","randsquares","visualize1","solidcolor","textdisplay"]
+        self.bassModes = ["thetachi","bassring"]
+        self.visualizerModes = ["visualize1"]
+        self.freqIntervalModes = ["levels"]
+        self.curMode = ("randsquares","default=True")
+        self.lastMode = None
+        self.symbolDict = {'!':exclamation,'.':period,',':comma,'?':question,'$':dollar, '#':pound,'/':backslash,'+':plus,'-':minus,'=':equals, '<':lessthan, '>':greaterthan, ':':colon}
+        
+
+    def updateMode(self, mode):
+        if(mode[0] == "textdisplay" and self.curMode[0] != "textdisplay"):
+            self.lastMode = self.curMode
+        self.curMode = mode
+        self.newMode = True
+        self.init = 0
+
+    def updateLEDs(self, matrix):
+        args = self.curMode[1]
+        try:
+            eval("self."+self.curMode[0]+"("+str(matrix)+","+args+")")
+            #getattr(self, self.curMode[0])(matrix,*)
+        except ValueError:
+            print "ERROR, in function of: ",self.curMode
+            print sys.exc_info()[0]
+            if(self.curMode[0] in self.modes):
+                self.updateMode((self.curMode[0],"default=True"))
+            else:
+                self.updateMode(("randsquares","default=True"))
+                args = self.curMode[1].split(",")
+                getattr(self, self.curMode[0])(matrix,*args)
+
+
+    def randsquares(self,matrix,default=True,change=False,halfblack=False):
+        if(change):
+            if(self.updateSquares):
+                self.updateSquares = False
+                self.init = 0
+
+        if(self.init == 0):
+            self.init = 1
+            for i in xrange(self.numColumns)):
+                for j in xrange(i*self.numColumns,i*self.numColumns+self.numRows):
+                    touchColors = []
+                    availColors = []
+                    if(halfblack):
+                        if((i+j)%2 == 0):
+                            #set to black
+                            self.LEDs[j] = self.Color(0,0,0)
+                            continue
+                    if(j % self.numRows > 0):
+                        touchColors.append(self.LEDs[j-1])
+                        if(i < self.numColumns - 1):
+                            touchColors.append(self.LEDs[j-1+self.numRows])
+                            
+                    if(i > 0):
+                        if(j % self.numRows > 0):
+                            touchColors.append(self.LEDs[j-1-self.numRows])
+                        touchcolors.append(self.LEDs[j-self.numRows])
+
+                    for k in xrange(len(self.colors)):
+                        if(self.colors[k] not in touchColors):
+                            availColors.append(self.colors[k])
+                    color = availColors[random.randrange(0,len(availColors))]
+                    self.LEDs[j] = color
+        self.writeLedColors()
+    
+
+    def visualize1(self, matrix, default=True):
+        if(self.visualizeWait < self.visualizeFreq):
+            self.visualizeWait += 1
+            return
+        self.visualizeWait = 0
+        if(self.visualizeWaves[0] == None):
+            self.visualizeWaves[0] = self.colors[random.randrange(len(self.colors))]
+        color = self.visualizeWaves[0]
+        x1 = 3
+        x2 = 3
+        y1 = 6
+        y2 = 7
+        for i in xrange(len(self.visualizeWaves)):
+            if(self.visualizeWaves[i] != None):
+                if(i == 0):
+                    self.LEDs[y1*self.numColumns+x1] = self.visualizeWaves[i]
+                    self.LEDs[y2*self.numColumns+x2] = self.visualizeWaves[i]
+                    y1-=2
+                    y2+=2
+                    x1-=1
+                    x2+=1
+                    continue  
+                for j in xrange(y1*self.numColumns+x1,y1*self.numColumns+x2+1):
+                    self.LEDs[j] = self.visualizeWaves[i]
+                for j in xrange((y1+1)*self.numColumns+x1,(y1+1)*self.numColumns+x2+1):
+                    self.LEDs[j] = self.visualizeWaves[i]
+                for j in xrange(y2*self.numColumns+x1,y2*self.numColumns+x2+1):
+                    self.LEDs[j] = self.visualizeWaves[i]
+                for j in xrange((y2-1)*self.numColumns+x1,(y2-1)*self.numColumns+x2+1):
+                    self.LEDs[j] = self.visualizeWaves[i]
+
+                self.writeLedColors()
+            y1-=2
+            y2+=2
+            x1-=1
+            x2+=1
+
+        while color == self.visualizeWaves[0]:
+            color = self.colors[random.randrange(len(self.colors))]
+        for i in xrange(len(self.visualizeWaves)):
+            if(i == 0):
+                nextcolor = self.visualizeWaves[i]
+                self.visualizeWaves[i] = color
+                continue
+            if(self.visualizeWaves[i] != None):
+                curColor = self.visualizeWaves[i]
+                self.visualizeWaves[i] = nextcolor
+                nextcolor = curColor
+            else:
+                self.visualizeWaves[i] = nextcolor
+                break
+
+    def thetachi(self, matrix, default=True):
+        bass = 0
+        if(self.bass):
+            self.bass = 0
+      
+            self.turnOffLEDs("all")
+            getattr(self, self.thetaChiLetter.letter)(matrix)
+            self.thetaChiLetter = self.thetaChiLetter.next
+
+    def theta(self, matrix):
+        self.w.itemconfigure(self.ledMatrix[1][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][2],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][3],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][5],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][2],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][3],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][5],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[2][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[3][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[4][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[2][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[3][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[4][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][6],fill="red")
+
+        self.w.itemconfigure(self.ledMatrix[2][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[3][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[4][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][4],fill="red")
+        self.master.update()
+
+    def chi(self, matrix):
+        self.w.itemconfigure(self.ledMatrix[1][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[2][2],fill="red")
+        self.w.itemconfigure(self.ledMatrix[3][3],fill="red")
+        self.w.itemconfigure(self.ledMatrix[4][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][5],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][6],fill="red")
+        self.w.itemconfigure(self.ledMatrix[6][1],fill="red")
+        self.w.itemconfigure(self.ledMatrix[5][2],fill="red")
+        self.w.itemconfigure(self.ledMatrix[4][3],fill="red")
+        self.w.itemconfigure(self.ledMatrix[3][4],fill="red")
+        self.w.itemconfigure(self.ledMatrix[2][5],fill="red")
+        self.w.itemconfigure(self.ledMatrix[1][6],fill="red")
+        self.master.update()
+
+
+    def levels(self, matrix, default=True):
+        self.turnOffLEDs("all")
+        for i in xrange(self.numColumns):
+            color = self.colors[i]
+            for j in xrange(i*self.numColumns,i*self.Columns+int(matrix[i])):
+                self.LEDs[j] = color
+        
+        self.writeLedColors()
+
+
+    def bassring(self, matrix, default=True):
+        if self.init == 0 or self.updateSquares:
+            self.init = 1
+            self.updateSquares = False
+            for i in xrange(1,self.numColumns-1):
+                for j in xrange(i*self.numColumns,i*self.numColumns+self.numRows):
+                    touchColors = []
+                    availColors = []
+                    if(j%self.numRows > 1):
+                        touchColors.append(self.LEDs[j-1]
+                        if(i < self.numColumns-1):
+                            touchColors.append(self.LEDs[j-1+self.numColumns])
+                    if(i > 1):
+                        if(j%self.numRows > 1):
+                            touchColors.append(self.LEDs[j-1-self.numColumns])
+                        touchColors.append(self.LEDs[j-self.numColumns])
+                    for k in xrange(len(self.colors)):
+                        if(self.colors[k] not in touchColors):
+                            availColors.append(self.colors[k])
+                    color = availColors[random.randrange(0,len(availColors))]
+                    self.LEDs[j] = color
+            self.writeLedColors()
+                                   
+        if(self.bass):
+            self.bass = 0
+            for i in xrange(self.numColumns):
+                self.LEDs[i] = self.bassBooster.color
+                self.LEDs[(i+1)*(self.numRows-1)] = self.bassBooster.color
+                self.LEDs[i*self.numRows] = self.bassBooster.color
+                self.LEDs[self.numLeds - i - 1] = self.bassBooster.color
+
+        self.writeLedColors()
+
+
+    def textdisplay(self,matrix,default=True,text=False):
+        if(len(self.letterMatrix) > 0):
+            if(self.letterWait < 1):
+                self.letterWait += 1
+                return
+            else:
+                self.letterWait = 0
+
+            for i in xrange(self.numColumns-1,0,-1):
+                for j in xrange(i*self.numColumns,i*self.numColumns+self.numRows):
+                    self.LEDs[j]=self.LEDs[j-self.numRows]
+            self.turnOffLEDs("letters")
+
+            for i in self.letterMatrix[0]:
+                self.LEDs[i] = self.Color(255,0,0)
+            self.letterMatrix = self.letterMatrix[1:]
+            self.writeLedColors()
+
+        elif(text):
+            #self.textDisplayTimer = 0.0
+            symbol = text[0]
+            if(symbol.isalpha() == False and symbol.isdigit()==False and symbol.isspace()==False):
+                if(symbol not in self.symbolDict):
+                    self.updateMode(("textdisplay","text="+"'"+text[1:]+"'"))
+                    return
+            if(symbol.isdigit()):
+                self.letterMatrix = [[]]+eval("num"+symbol+"()")
+            elif(symbol.isspace()):
+                self.letterMatrix = [[],[],[],[]]
+            elif(symbol in self.symbolDict):
+                self.letterMatrix = [[]]+self.symbolDict[symbol]()               
+            else:
+                symbol = symbol.lower()
+                self.letterMatrix = [[]]+eval(symbol+"()")
+            if(len(text) == 1):
+                self.letterMatrix += [[],[],[],[],[],[],[],[]]
+            self.updateMode(("textdisplay","text="+"'"+text[1:]+"'"))
+
+        else:
+            if(self.lastMode != None):
+                self.updateMode(self.lastMode)
+            else:
+                self.updateMode(("randsquares","default=True"))                
+       
+
+    def solidcolor(self,matrix,default=True,colorrgb=False):
+        if(self.newMode):
+            self.newMode = False
+            if(colorrgb):
+                colorrgb = eval(colorrgb)
+                for i in colorrgb:
+                    if i < 0 or i > 255:
+                        self.updateMode(("randsquares","default=True"))
+                        return
+                self.LEDs=[self.Color(colorrgb[0],colorrgb[1],colorrgb[2])]*self.numLeds
+                self.writeLedColors()
+
+    def turnOffLEDs(self, Leds):
+        if Leds == "bassring":
+            for i in xrange(self.numColumns):
+                self.LEDs[i] = self.Color(0,0,0)
+                self.LEDs[(i+1)*(self.numRows-1)] = self.Color(0,0,0)
+                self.LEDs[i*self.numRows] = self.Color(0,0,0)
+                self.LEDs[self.numLeds - i - 1] = self.Color(0,0,0)
+        elif Leds == "letters":
+            for i in xrange(self.numColumns):
+                self.LEDs[i] = self.Color(0,0,0)
+        else:
+            for i in range(self.numColumns):
+                for j in range(i*self.numColumns,i*self.numColumns+self.numRows):
+                    self.LEDs[j] = self.Color(0,0,0)
+        self.writeLedColors()
+
+    def writeLedColors(self):
+        spidev = file("/dev/spidev0.0", "w")
+        for i in xrange(self.numLeds):
+            spidev.write(chr((self.LEDs[i]>>16) & 0xFF))
+            spidev.write(chr((self.LEDs[i]>>8) & 0xFF))
+            spidev.write(chr((self.LEDs[i] & 0xFF))
+        spidev.close()
+        time.sleep(0.002)        
+
+    def Color(self, r, g, b):
+        return ((r & 0xFF) << 16) | ((g & 0xFF) << 8) | (b & 0xFF)
+
+    def callback(self):
+        self.killed = True
+        self.master.destroy()
+        sys.exit("Killing Program")
+
+    def hexToRGB(self,hex):
+        hex = hex.lstrip('#')
+        lv = len(hex)
+        return tuple(int(hex[i:i+lv/3],16)for i in range(0,lv,lv/3))
+
+    def rgbToHex(self,rgb):
+        return "#%02x%02x%02x" % rgb
+    
+   
+
+if __name__ == "__main__":
+    main()     
+
+        

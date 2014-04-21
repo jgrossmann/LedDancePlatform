@@ -12,6 +12,7 @@ import threading
 from FileRecorder import *
 #from MicInRecorder import *
 from LEDUpdater import LEDWindow
+from LEDSPIUpdater import LEDPlatform
 from ModeParser import *
 from AudioAnalyzer import *
 from ServerSocketConnection import *
@@ -45,6 +46,7 @@ if __name__ == "__main__":
     
     #Setup Led graphical window or actual Led platform matrix
     platform = LEDWindow() 
+    #platform = LEDPlatform(7,14)
     AA = AudioAnalyzer(platform)
     
     #parses mode input to set mode 
@@ -74,7 +76,7 @@ if __name__ == "__main__":
     time.sleep(1)
     server.send(password, .5)
 
-    for i in xrange(50):
+    for i in xrange(10):
         #Making sure there is no junk on the socket
         data = server.listen(.05)
 
@@ -87,7 +89,7 @@ if __name__ == "__main__":
     while platform.killed == False:
         try:
             """
-            Mainloop which tries to analyze new audio data if there is new data
+            Mainloop which tries to analyze new audio data if there is new audio,
             then it very briefly polls the node.js server to see if there is 
             new data. If new data, it should be parsed into mode form and 
             the dance platform updater should be notified.
@@ -101,12 +103,14 @@ if __name__ == "__main__":
                 if(data == False):
                     #if returns False, kill was called from server
                     #otherwise data should be updated appropriately
+                    platform.turnOffLEDs("all")
                     break
                 mode = data
                 platform.updateMode(mode)
             
         except:
             print traceback.format_exc()
+            platform.turnOffLEDs("all")
             SR.continuousEnd()
             SR.close()
             server.disconnectSocket()
@@ -118,4 +122,5 @@ if __name__ == "__main__":
     SR.close()
     server.disconnectSocket()
     nodeServer.kill()
+    #may want to add in a shutdown command for the raspberry pi
     sys.exit("Killing App")
